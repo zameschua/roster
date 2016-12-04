@@ -8,7 +8,7 @@
     <!-- Logo -->
     <a href="../../index2.html" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><b>A</b>LT</span>
+      <span class="logo-mini"><b>R</b></span>
       <!-- logo for regular state and mobile devices -->
       <span class="logo-lg"><b>Roster</b></span>
     </a>
@@ -111,8 +111,13 @@
       </div>
       <!-- sidebar menu: : style can be found in sidebar.less -->
       <ul class="sidebar-menu">
-        <li class="active"><a href="/dashboard"><i class="fa fa-calendar"></i> <span>Dashboard</span></a></li>
+        <li class="active"><a href="/dashboard"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
         <li><a href="/submit"><i class="fa fa-plus"></i> <span>Submit Block-outs</span></a></li>
+        <!-- Display additional menu items if user is admin -->
+        {{#if admin}}
+        <li><a href="/planRoster"><i class="fa fa-calendar"></i> <span>Plan Roster</span></a></li>
+        <li><a href="/manageUsers"><i class="fa fa-users"></i> <span>Manage Users</span></a></li>
+        {{/if}}
       </ul>
     </section>
     <!-- /.sidebar -->

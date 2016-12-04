@@ -1,4 +1,4 @@
-<template name="submit">
+<template name="manageUsers">
 <body class="hold-transition skin-blue fixed sidebar-mini">
 {{#AdminLTE skin="red"}}
 <!-- Site wrapper -->
@@ -112,11 +112,11 @@
       <!-- sidebar menu: : style can be found in sidebar.less -->
       <ul class="sidebar-menu">
         <li><a href="/dashboard"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-        <li class="active"><a href="/submit"><i class="fa fa-plus"></i> <span>Submit Block-outs</span></a></li>
+        <li><a href="/submit"><i class="fa fa-plus"></i> <span>Submit Block-outs</span></a></li>
         <!-- Display additional menu items if user is admin -->
         {{#if admin}}
         <li><a href="/planRoster"><i class="fa fa-calendar"></i> <span>Plan Roster</span></a></li>
-        <li><a href="/manageUsers"><i class="fa fa-users"></i> <span>Manage Users</span></a></li>
+        <li class="active"><a href="/manageUsers"><i class="fa fa-users"></i> <span>Manage Users</span></a></li>
         {{/if}}
       </ul>
     </section>
