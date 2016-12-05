@@ -22,8 +22,8 @@ Template.manageUsers.helpers({
           {key: 'blockOutDates', label: 'Block out dates'},
           {key: 'allocatedDates', label: 'Allocated Dates'},
           {key: 'carriedOverPoints', label: 'Carried over points'},
-          {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs edit-btn"><i type="button" class="fa fa-edit"></i></button>')}},
-          {key: 'delete', label: 'Delete', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-danger btn-xs delete-btn"><i type="button" class="fa fa-trash"></i></button>')}},
+          {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs" id="edit-btn"><i type="button" class="fa fa-edit"></i></button>')}},
+          {key: 'delete', label: 'Delete', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-danger btn-xs" id="delete-btn"><i type="button" class="fa fa-trash"></i></button>')}},
         ]
       };
     }
@@ -33,9 +33,12 @@ Template.manageUsers.events({
 	'click .reactive-table tbody tr': function (event) {
     var post = this;
 
-    if (event.target.className == "delete-btn") {
-    	Meteor.call('deleteUser', post._id);
-    } else if (event.target.className == "edit-btn") {
+    if (event.target.id == "delete-btn") {
+    	var input = confirm("Warning! Are you sure you want to delete this user?");
+    	if (input) {
+    		Meteor.call('deleteUser', post._id);
+    	}
+    } else if (event.target.id == "edit-btn") {
 		;
     }
   }
