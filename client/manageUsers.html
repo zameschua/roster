@@ -153,11 +153,31 @@
 
         <div class="modal-body">
           <label for="name">Name</label>
-          <input type="text" id="staffName" /><br>
-          <label for="team">Team</label>
-          <input type="text" id="staffTeam" /><br>
-          <label for="postOutDate">Post out date (YYYY-MM-DD)</label>
-          <input type="text" id="staffDate" /><br>
+          <br>
+          <input type="text" id="staffName" />
+          <br>
+          <br>
+          <div class="form-group">
+            <label>Team</label>
+            <select class="form-control" id="staffTeam">
+              <option>option 1</option>
+              <option>option 2</option>
+              <option>option 3</option>
+              <option>option 4</option>
+              <option>option 5</option>
+            </select>
+          </div>
+
+          <!-- Date dd/mm/yyyy -->
+          <div class="form-group">
+            <label>Post out date (dd/mm/yyyy)</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-calendar"></i>
+              </div>
+              <input type="text" id="staffDate" class="form-control" data-inputmask="'alias': 'dd/mm/yy'" data-mask>
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer">

@@ -10,7 +10,11 @@ Template.dashboard.helpers({
 	}
 });
 
-Template.dashboard.created = function() {
+Template.dashboard.rendered = function() {
+	var id = Meteor.userId();
+	console.log(id);
+	var user = staffCollection.findOne({meteorId: id});
+	console.log(user);
 	Modal.show('updateProfile'); // Todo: Show modal only when user first log in
 	// Todo: Update the staffCollection when user updates it
 };
