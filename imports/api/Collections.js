@@ -1,5 +1,3 @@
-export const staffCollection = new Mongo.Collection("staffCollection");
-
 const Schema = {};
 
 Schema.User = new SimpleSchema({
