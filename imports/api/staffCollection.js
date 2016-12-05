@@ -10,12 +10,4 @@ staffCollection.schema = new SimpleSchema({
   team: {type: String, label: 'team', defaultValue: undefined},
 });
 
-staffCollection.insert({
-  name: "alice",
-  preferredDates: [1,4,9],
-  blockOutDates: [2,3,4,6],
-  carriedOverPoints: 1,
-  allocatedDates: [1,4,9],
-  postOutDate: new Date(2016,12,12),
-  team: 'A',
-});
+staffCollection.attachSchema(staffCollection.schema);

@@ -8,3 +8,10 @@ Meteor.startup(() => {
   	return staffCollection.find();
   });
 });
+
+
+Meteor.methods({
+	deleteUser: function(id) {
+		staffCollection.remove(id);
+	}
+});
