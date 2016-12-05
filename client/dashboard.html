@@ -129,7 +129,6 @@
   <div class="content-wrapper">
     <!-- Main content -->
     <section class="content">
-      {{> updateProfile}}
     </section>
     <!-- /.content -->
   </div>
@@ -141,23 +140,52 @@
 </body>
 </template>
 
-<template name="updateProfile">
-  <div class="modal fade" id="editProfileModal">
+
+<template name="firstLogin">
+  <div class="modal fade" id="editModal">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
 
-        <div class="modal-header">
-          <h4 class="modal-title">Edit</h4>
+        <div class="modal-header bg-red disabled color-palette">
+          <h3 class="modal-title">Welcome to Roster!</h3>
+          <p>Looks like it's your first sign in! Please input your details.</p>
         </div>
 
         <div class="modal-body">
+          <!-- Name Form -->
           <label for="name">Name</label>
-          <input type="text" id="staffName" value={{staffName}}/>
+          <br>
+          <input type="text" id="staffName" />
+          <br>
+          <br>
+
+          <!-- Group Form -->
+          <div class="form-group">
+            <label>Team</label>
+            <select class="form-control" id="staffTeam">
+              <option>option 1</option>
+              <option>option 2</option>
+              <option>option 3</option>
+              <option>option 4</option>
+              <option>option 5</option>
+            </select>
+          </div>
+
+          <!-- Date Form -->
+          <div class="form-group">
+            <label>Post out date (yyyy/mm/dd)</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-calendar"></i>
+              </div>
+              <input type="text" id="staffDate">
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" id="modal-save">Save</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         </div>
 
       </div>

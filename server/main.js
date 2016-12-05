@@ -30,10 +30,8 @@ Accounts.onCreateUser(function(options, user) {
     user.allocatedDates = [],
     user.postOutDate = new Date();
     user.team = "undefined";
-    user.role = "normal";
+    user.roles = "normal";
 
-
-	console.log(user);
 	return user;
 });
 

@@ -4,15 +4,40 @@ import './dashboard.html';
 
 
 Template.dashboard.helpers({
+	// Show additional buttons if user is admin
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
 	}
 });
 
 Template.dashboard.rendered = function() {
-	var id = Meteor.userId();
-	console.log(id);
-	var user = Meteor.users.findOne({meteorId: id});
-	console.log(user);
-	Modal.show('updateProfile'); // Todo: Show modal only when user first log in
+	setTimeout(function(){ 
+		if (Meteor.user().name == "undefined") {
+			Modal.show('firstLogin'); // Todo: Show modal only when user first log in
+		}
+	}, 1000);
 };
+
+Template.firstLogin.events({
+  'click #modal-save': function(event){
+    event.preventDefault();
+
+    var obj = {
+      name: $('#staffName').val(),
+      team: $('#staffTeam').val(),
+      postOutDate: $('#staffDate').val(),
+    };
+
+    // Call function in /server/main.js to update record in MongoDB
+    Meteor.call('updateUser', Meteor.userId(), obj);
+
+    // Hide the modal
+    $('#editModal').modal('hide');
+    // Reset the values in the modal input textfields
+    $("#editModal").on("hidden.bs.modal", function(){
+      $(this).find("input, textarea, select").val('').end();
+    });
+    // Send user a notification
+    alert("Your profile has been updated!");
+  }
+});

@@ -25,15 +25,12 @@ Schema.User = new SimpleSchema({
         type: Schema.UserProfile,
         optional: true
     },
-    // Make sure this services field is in your schema if you're using any of the accounts packages
+    // For external sign in services ie. Facebook or Google
     services: {
         type: Object,
         optional: true,
         blackbox: true
     },
-    // Option 2: [String] type
-    // If you are sure you will never need to use role groups, then
-    // you can specify [String] as the type
     roles: {
         type: String,
         optional: true
