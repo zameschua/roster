@@ -129,8 +129,8 @@
   <div class="content-wrapper">
     <!-- Main content -->
     <section class="content">
-    	{{> reactiveTable collection=staffCollection settings=settings}}
-    	{{> editStaffCollection}}
+    	{{> reactiveTable collection=users settings=settings}}
+    	{{> editUsersCollection}}
     </section>
     <!-- /.content -->
   </div>
@@ -142,7 +142,7 @@
 </body>
 </template>
 
-<template name="editStaffCollection">
+<template name="editUsersCollection">
   <div class="modal fade" id="editModal">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
@@ -152,11 +152,15 @@
         </div>
 
         <div class="modal-body">
+
+        	<!-- Name Form -->
           <label for="name">Name</label>
           <br>
           <input type="text" id="staffName" />
           <br>
           <br>
+
+          <!-- Group Form -->
           <div class="form-group">
             <label>Team</label>
             <select class="form-control" id="staffTeam">
@@ -168,17 +172,28 @@
             </select>
           </div>
 
-          <!-- Date dd/mm/yyyy -->
+          <!-- Date Form -->
           <div class="form-group">
-            <label>Post out date (dd/mm/yyyy)</label>
+            <label>Post out date (yyyy/mm/dd)</label>
             <div class="input-group">
               <div class="input-group-addon">
                 <i class="fa fa-calendar"></i>
               </div>
-              <input type="text" id="staffDate" class="form-control" data-inputmask="'alias': 'dd/mm/yy'" data-mask>
+              <input type="text" id="staffDate">
             </div>
           </div>
+
+          <!-- Role Form -->
+          <div class="form-group">
+            <label>Role</label>
+            <select class="form-control" id="staffRole">
+              <option>normal</option>
+              <option>admin</option>
+            </select>
+          </div>
         </div>
+
+
 
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" id="modal-save">Save</button>

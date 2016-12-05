@@ -1,22 +1,19 @@
 import { Meteor } from 'meteor/meteor';
 
-import { staffCollection } from '/imports/api/staffCollection.js';
-
 
 Meteor.startup(() => {
-  Meteor.publish("staffCollection", function() {
-  	return staffCollection.find();
+  Meteor.publish("allUsers", function() {
+  	return Meteor.users.find();
   });
 });
 
 
 Meteor.methods({
 	deleteUser: function(id) {
-		//Meteor.users.remove(id); !Add this back in after setting up accounts properly
-		staffCollection.remove(id);
+		Meteor.users.remove(id);
 	},
 	updateUser: function(id, obj) {
-		staffCollection.update({_id: id}, {$set: obj});
+		Meteor.users.update({_id: id}, {$set: obj});
 	}
 });
 
@@ -26,11 +23,17 @@ Accounts.onCreateUser(function(options, user) {
 	    user.profile = options.profile;
 	}
 
-	// Add user to staffCollection
-	staffCollection.insert({
-		meteorId: user._id,
-	});
+    user.name = "undefined";
+    user.preferredDates = [];
+    user.blockOutDates = [];
+    user.carriedOverPoints = 0;
+    user.allocatedDates = [],
+    user.postOutDate = new Date();
+    user.team = "undefined";
+    user.role = "normal";
 
+
+	console.log(user);
 	return user;
 });
 

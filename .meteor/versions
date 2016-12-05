@@ -72,7 +72,6 @@ meteortoys:status@3.0.0
 meteortoys:sub@3.0.0
 meteortoys:throttle@3.0.0
 meteortoys:toykit@3.0.4
-mfactory:admin-lte@0.0.2
 minifier-css@1.2.15
 minifier-js@1.2.15
 minimongo@1.0.19
@@ -97,6 +96,7 @@ random@1.0.10
 rate-limit@1.0.6
 reactive-dict@1.1.8
 reactive-var@1.0.11
+redaty:admin-lte@0.0.5
 reload@1.1.11
 retry@1.0.9
 routepolicy@1.0.12
