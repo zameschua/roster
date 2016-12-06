@@ -1,3 +1,8 @@
+<!--
+WARNING
+This page is NOT mobile friendly
+-->
+
 <template name="planRoster">
 <body class="hold-transition skin-blue fixed sidebar-mini">
 {{#AdminLTE skin="red"}}
@@ -129,7 +134,7 @@
   <div class="content-wrapper">
     <!-- Main content -->
     <section class="content">
-      
+      {{> excelTable}}
     </section>
     <!-- /.content -->
   </div>
@@ -139,4 +144,9 @@
 <!-- ./wrapper -->
 {{/AdminLTE}}
 </body>
+</template>
+
+<!-- Putting extelTable in its own template if not the template.onRendered() won't load correctly -->
+<template name='excelTable'>
+  <div id="excel-table"></div>
 </template>
