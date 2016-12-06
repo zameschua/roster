@@ -13,9 +13,15 @@ Template.dashboard.helpers({
 Template.dashboard.rendered = function() {
 	setTimeout(function(){ 
 		if (Meteor.user().name == "undefined") {
+
 			Modal.show('firstLogin'); // Todo: Show modal only when user first log in
 		}
 	}, 1000);
+};
+
+Template.firstLogin.rendered = function(){
+    $('#staffDateDiv').datepicker({format: "yyyy/mm/dd",});
+    $('#staffDateDiv').on("changeDate",function(){$("#staffDate").val($("#staffDateDiv").datepicker("getFormattedDate"))});
 };
 
 Template.firstLogin.events({

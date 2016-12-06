@@ -8,25 +8,26 @@ Template.manageUsers.helpers({
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
 	},
-    users: function() {
-        return Meteor.users;
-    },
-    settings: function(){
-      return {
-        fields: [
-            {key: 'name',label: "Name"},
-            {key: 'team', label: "Team"},
-            {key: 'postOutDate', label: "Post out date"},
-            {key: 'preferredDates', label: 'Preferred dates'},
-            {key: 'blockOutDates', label: 'Block out dates'},
-            {key: 'allocatedDates', label: 'Allocated Dates'},
-            {key: 'carriedOverPoints', label: 'Carried over points'},
-            {key: 'roles', label: 'Role'},
-            {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs" id="edit-btn"><i type="button" class="fa fa-edit" id="edit-btn"></i></button>')}},
-            {key: 'delete', label: 'Delete', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-danger btn-xs" id="delete-btn"><i type="button" class="fa fa-trash" id="delete-btn"></i></button>')}},
-        ]
-      };
-    }
+  users: function() {
+      return Meteor.users;
+  },
+  settings: function(){
+    return {
+      fields: [
+          {key: 'name',label: "Name"},
+          {key: 'team', label: "Team"},
+          {key: 'postOutDate', label: "Post out date"},
+          {key: 'preferredDates', label: 'Preferred dates'},
+          {key: 'blockOutDates', label: 'Block out dates'},
+          {key: 'allocatedDates', label: 'Allocated Dates'},
+          {key: 'carriedOverPoints', label: 'Carried over points'},
+          {key: 'roles', label: 'Role'},
+          {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs" id="edit-btn"><i type="button" class="fa fa-edit" id="edit-btn"></i></button>')}},
+          {key: 'delete', label: 'Delete', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-danger btn-xs" id="delete-btn"><i type="button" class="fa fa-trash" id="delete-btn"></i></button>')}},
+      ]
+    };
+  },
+
 });
 
 Template.manageUsers.events({
@@ -40,9 +41,12 @@ Template.manageUsers.events({
         Meteor.call('deleteUser', post._id);
       }
     } else if (event.target.id == "edit-btn") {
+      $('#staffDateDiv').datepicker({format: "yyyy/mm/dd",});
+      $('#staffDateDiv').on("changeDate",function(){$("#staffDate").val($("#staffDateDiv").datepicker("getFormattedDate"))});
       temp = post;
       // Show the modal (popup)
       $('#editModal').modal('show');
+      
     }
   },
   'click #edit-modal-save': function(event){
@@ -76,6 +80,8 @@ Template.manageUsers.events({
     alert("Record has been updated.");
   },
   'click .addStaffButton': function(event){
+    $('#newStaffDateDiv').datepicker({format: "yyyy/mm/dd",});
+    $('#newStaffDateDiv').on("changeDate",function(){$("#newStaffDate").val($("#newStaffDateDiv").datepicker("getFormattedDate"))});
     $('#addModal').modal('show');
   },
   'click #add-modal-save': function(event){
@@ -87,7 +93,7 @@ Template.manageUsers.events({
         return;
       }
     }
-
+    console.log($('#newStaffDate').val());
     var obj = {
       name: $('#newStaffName').val(),
       team: $('#newStaffTeam').val(),
@@ -109,4 +115,3 @@ Template.manageUsers.events({
     alert("Record has been added.");
   },
 });
-
