@@ -129,6 +129,7 @@
   <div class="content-wrapper">
     <!-- Main content -->
     <section class="content">
+      {{> addStaffButton}}
     	{{> reactiveTable collection=users settings=settings}}
     	{{> editUsersCollection}}
     </section>
@@ -140,6 +141,11 @@
 <!-- ./wrapper -->
 {{/AdminLTE}}
 </body>
+</template>
+
+<template name="addStaffButton">
+  <button class="btn btn-success addStaffButton">Add Staff</button>
+  
 </template>
 
 <template name="editUsersCollection">
@@ -196,7 +202,77 @@
 
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="modal-save">Save</button>
+          <button type="button" class="btn btn-primary" id="edit-modal-save">Save</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addModal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+
+        <div class="modal-header bg-red disabled color-palette">
+          <h4 class="modal-title">Add a staff</h4>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Name Form -->
+          <label for="name">Name</label>
+          <br>
+          <input type="text" id="newStaffName" />
+          <br>
+          <br>
+
+          <!-- Email Form -->
+          <div class="form-group">
+            <label>Email</label>
+            <br>
+            <input type="text" id="newStaffEmail" />
+            <br>
+          
+          </div>
+
+          <!-- Group Form -->
+          <div class="form-group">
+            <label>Team</label>
+            <select class="form-control" id="newStaffTeam">
+              <option>option 1</option>
+              <option>option 2</option>
+              <option>option 3</option>
+              <option>option 4</option>
+              <option>option 5</option>
+            </select>
+          </div>
+
+          <!-- Date Form -->
+          <div class="form-group">
+            <label>Post out date (yyyy/mm/dd)</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-calendar"></i>
+              </div>
+              <input type="text" id="newStaffDate">
+            </div>
+          </div>
+
+          <!-- Role Form -->
+          <div class="form-group">
+            <label>Role</label>
+            <select class="form-control" id="newStaffRole">
+              <option>normal</option>
+              <option>admin</option>
+            </select>
+          </div>
+        </div>
+
+
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="add-modal-save">Save</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         </div>
 

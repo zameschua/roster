@@ -45,7 +45,7 @@ Template.manageUsers.events({
       $('#editModal').modal('show');
     }
   },
-  'click #modal-save': function(event){
+  'click #edit-modal-save': function(event){
     event.preventDefault();
 
     // Double confirm if setting user as admin
@@ -74,6 +74,39 @@ Template.manageUsers.events({
     });
     // Send user a notification
     alert("Record has been updated.");
-  }
+  },
+  'click .addStaffButton': function(event){
+    $('#addModal').modal('show');
+  },
+  'click #add-modal-save': function(event){
+    event.preventDefault();
+    // Double confirm if setting user as admin
+    if ($('#staffRole').val() == "admin") {
+      var result = confirm("Are you sure you want to set this user as admin?");
+      if (!result) {
+        return;
+      }
+    }
+
+    var obj = {
+      name: $('#newStaffName').val(),
+      team: $('#newStaffTeam').val(),
+      postOutDate: $('#newStaffDate').val(),
+      roles: $('#newStaffRole').val(),
+      email: $('#newStaffEmail').val(),
+    };
+
+    // Call function in /server/main.js to update record in MongoDB
+    Meteor.call('insertUser', obj);
+
+    // Hide the modal
+    $('#addModal').modal('hide');
+    // Reset the values in the modal input textfields
+    $("#addModal").on("hidden.bs.modal", function(){
+      $(this).find("input, textarea, select").val('').end();
+    });
+    // Send user a notification
+    alert("Record has been added.");
+  },
 });
 
