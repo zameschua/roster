@@ -41,10 +41,10 @@ Schema.User = new SimpleSchema({
         optional: true
     },
     name: {type: String, label: 'name', defaultValue: "undefined"},
-    preferredDates: {type: [Number], label: 'preferred dates', defaultValue: []},
-    blockOutDates: {type: [Number], label: 'block-out dates', defaultValue: []},
+    preferredDates: {type: Object, label: 'preferred dates', defaultValue: {}},
+    blockOutDates: {type: Object, label: 'block-out dates', defaultValue: {}},
     carriedOverPoints: {type: Number, label: 'carried over points', defaultValue: 0},
-    allocatedDates: {type: [Number], label: 'allocated dates', defaultValue: []},
+    allocatedDates: {type: Object, label: 'allocated dates', defaultValue: {}},
     postOutDate: {type: Date, label: 'post out date', defaultValue: new Date()},
     team: {type: String, label: 'team', defaultValue: "undefined"},
 });
