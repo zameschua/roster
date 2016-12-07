@@ -22,8 +22,8 @@ Template.manageUsers.helpers({
           {key: 'allocatedDates', label: 'Allocated Dates'},
           {key: 'carriedOverPoints', label: 'Carried over points'},
           {key: 'roles', label: 'Role'},
-          {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs" id="edit-btn"><i type="button" class="fa fa-edit" id="edit-btn"></i></button>')}},
-          {key: 'delete', label: 'Delete', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-danger btn-xs" id="delete-btn"><i type="button" class="fa fa-trash" id="delete-btn"></i></button>')}},
+          {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs btn-flat" id="edit-btn"><i type="button" class="fa fa-edit" id="edit-btn"></i></button>')}},
+          {key: 'delete', label: 'Delete', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-danger btn-xs btn-flat" id="delete-btn"><i type="button" class="fa fa-trash" id="delete-btn"></i></button>')}},
       ]
     };
   },

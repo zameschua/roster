@@ -1,1 +1,3 @@
-Meteor.subscribe("allUsers");
+// Todo: Only subscribe for admins
+Meteor.subscribe("AllUsersCollection");
+Meteor.subscribe("RosterDataCollection");

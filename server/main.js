@@ -1,10 +1,15 @@
 import { Meteor } from 'meteor/meteor';
-
+import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 
 Meteor.startup(() => {
-  Meteor.publish("allUsers", function() {
-  	return Meteor.users.find();
-  });
+	// Publish collections to all users for now
+	// Switch to admin later
+	Meteor.publish("AllUsersCollection", function() {
+		return Meteor.users.find();
+	});
+	Meteor.publish("RosterDataCollection", function() {
+		return RosterDataCollection;
+	});
 });
 
 
