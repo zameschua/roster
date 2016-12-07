@@ -8,7 +8,7 @@ Meteor.startup(() => {
 		return Meteor.users.find();
 	});
 	Meteor.publish("RosterDataCollection", function() {
-		return RosterDataCollection;
+		return RosterDataCollection.find();
 	});
 });
 
