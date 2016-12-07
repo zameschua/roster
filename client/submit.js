@@ -86,7 +86,7 @@ function stateIsOn(date) {
 	return $("td[data-date=" + date.format()+ "][class*= fc-widget-content]").css('background-color') == "rgb(231, 76, 60)" ? true : false;
 }
 
-//string to date-day formatting
+// String to date-day formatting
 function toDateDay(string){
 	//one line condition syntax -> (condition) ? (when true) : (when false)
 	return string.length == 2 ? string : '0'+string;

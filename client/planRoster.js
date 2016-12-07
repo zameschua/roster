@@ -25,12 +25,21 @@ var data = [
 // Using handsontable for the excel-table
 // Docs:  https://docs.handsontable.com/pro/1.8.0/tutorial-introduction.html
 Template.excelTable.rendered = function() {
+	// Get the next month
+	var today = new Date();
+	var nextMonth = (today.getMonth() + 2) % 12;
+
+
+
+
+
 	$("#excel-table").handsontable({
 	    data: data,
 	    minSpareRows: 1,
 	    colHeaders: true,
 	    contextMenu: true,
-	    fixedColumnsLeft: 1,
+	    fixedColumnsLeft: 1, // Fixed names column
+	    fixedRowsTop: 1, // Fixed dates row
 	    manualColumnResize: true,
 	    manualRowResize: true
 	});
