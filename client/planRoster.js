@@ -27,11 +27,20 @@ var data = [
 Template.excelTable.rendered = function() {
 	// Get the next month
 	var today = new Date();
-	var nextMonth = (today.getMonth() + 2) % 12;
+	var nextYear = today.getFullYear();
+	var nextMonth = (today.getMonth() + 1) % 12; // NOTE: Jan is 0, Dec is 11. Follows Javascript's Date object implementation
+	if (nextMonth == 0) { // If month is in december, nextYear will be the next year
+		nextYear += 1; 
+	}
+	var daysInNextMonth = daysInMonth(nextYear, nextMonth);
+	var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
 
-
-
-
+	// Remove later!
+	console.log("year");
+	console.log(nextYear);
+	console.log("month");
+	console.log(nextMonth);
+	console.log(weekends);
 
 	$("#excel-table").handsontable({
 	    data: data,
@@ -43,5 +52,24 @@ Template.excelTable.rendered = function() {
 	    manualColumnResize: true,
 	    manualRowResize: true
 	});
+}
+
+
+// ------------------ HELPER FUNCTIONS --------------------
+// Returns the number of days in that particular month
+function daysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+}
+
+// Returns an array of all the Saturdays and Sundays in the particular month
+function getWeekends(year, month, daysInMonth) {
+	var weekends = [];
+	for (var i = 1; i <= daysInMonth; i++){    // Looping through days in month
+	    var newDate = new Date(year, month , i);
+	    if(newDate.getDay() == 0 || newDate.getDay() == 6){   // if Sunday or Saturday
+	        weekends.push(i);
+	    }
+	}
+	return weekends;
 }
 
