@@ -153,7 +153,6 @@ function toggleOff(array,date,state) {
 	}
 	else{
 		if(i != -1) {
-			console.log('hit');
 			blockOutDays.splice(i, 1);
 		}	
 	}
@@ -161,7 +160,7 @@ function toggleOff(array,date,state) {
 }
 
 // Returns True if state of the date is "blocked"
-function stateIsOn(date,State) {
+function stateIsOn(date,state) {
 	bgColor = $("td[data-date=" + date.format()+ "][class*= fc-widget-content]").css('background-color');
 	if (bgColor == "rgb(231, 76, 60)" && state == 0){
 		//if background is red and state is blockOut
@@ -173,13 +172,12 @@ function stateIsOn(date,State) {
 	}
 	else{
 		if (bgColor == "rgb(231, 76, 60)" && state == 1){
-			//if background is red but state is preferred
-			console.log((State+1)%2);	
-			toggleOff(blockOutDays,date,(State+1)%2);
+			//if background is red but state is preferred	
+			toggleOff(blockOutDays,date,(state+1)%2);
 		}
 		else if (bgColor == "rgb(0, 128, 0)" && state == 0){
 			//if background is green but state is blockOut
-			toggleOff(preferredDays,date,state);
+			toggleOff(preferredDays,date,(state+1)%2);
 		}
 		return false;
 	}
