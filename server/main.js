@@ -38,10 +38,10 @@ Accounts.onCreateUser(function(options, user) {
 	    user.profile = options.profile;
 	}
     user.name = 'undefined';
-    user.preferredDates = [];
-    user.blockOutDates = [];
+    user.preferredDates = {};
+    user.blockOutDates = {};
     user.carriedOverPoints = 0;
-    user.allocatedDates = [],
+    user.allocatedDates = {},
     user.postOutDate = new Date();
     user.team = "undefined";
     user.roles = "normal";
