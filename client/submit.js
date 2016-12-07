@@ -159,7 +159,7 @@ function toggleOff(array,date,state) {
 
 }
 
-// Returns True if state of the date is "blocked"
+// Returns True if state of the date is occupied by "blocked" or "preferred"
 function stateIsOn(date,state) {
 	bgColor = $("td[data-date=" + date.format()+ "][class*= fc-widget-content]").css('background-color');
 	if (bgColor == "rgb(231, 76, 60)" && state == 0){

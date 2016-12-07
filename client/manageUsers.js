@@ -32,6 +32,13 @@ Template.manageUsers.helpers({
 
 });
 
+Template.addStaffButton.helpers({
+  dateHelper : function(){
+    return moment().add(1,'M').format("MMMM YYYY");
+  }
+
+});
+
 Template.manageUsers.events({
   'click .reactive-table tbody tr': function (event) {
     var post = this;
