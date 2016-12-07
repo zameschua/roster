@@ -3,6 +3,8 @@ import { Template } from 'meteor/templating';
 import './manageUsers.html';
 
 var temp = {name: undefined, team: undefined, postOutDate: undefined};
+var targetDate = moment().add(1,'M');
+
 
 Template.manageUsers.helpers({
 	admin: function() {
@@ -17,9 +19,9 @@ Template.manageUsers.helpers({
           {key: 'name',label: "Name"},
           {key: 'team', label: "Team"},
           {key: 'postOutDate', label: "Post out date"},
-          {key: 'preferredDates', label: 'Preferred dates'},
-          {key: 'blockOutDates', label: 'Block out dates'},
-          {key: 'allocatedDates', label: 'Allocated Dates'},
+          {key: 'preferredDates.' + targetDate.year() + '.' + targetDate.month(), label: 'Preferred dates'},
+          {key: 'blockOutDates.' + targetDate.year() + '.' + targetDate.month(), label: 'Block out dates'},
+          {key: 'allocatedDates.' + targetDate.year() + '.' + targetDate.month(), label: 'Allocated Dates'},
           {key: 'carriedOverPoints', label: 'Carried over points'},
           {key: 'roles', label: 'Role'},
           {key: 'edit', label: 'Edit', fn: function () {return new Spacebars.SafeString('<button type="button" class="btn btn-block btn-warning btn-xs btn-flat" id="edit-btn"><i type="button" class="fa fa-edit" id="edit-btn"></i></button>')}},
