@@ -134,6 +134,22 @@ This page is NOT mobile friendly
   <div class="content-wrapper">
     <!-- Main content -->
     <section class="content">
+      <div class="row">
+        <div class="col-sm-3">
+          <button type="button" class="btn btn-block btn-warning btn-flat" id="submit-btn">Load</button>
+        </div>
+        <div class="col-sm-3">
+          <button type="button" class="btn btn-block btn-warning btn-flat" id="submit-btn">Save</button>
+        </div>
+        <div class="col-sm-6">
+          <div class="form-group">
+            <label>
+              <input type="checkbox" class="flat-red">
+              <p>Autosave</p>
+            </label>
+          </div>
+        </div>
+      </div>
       {{> excelTable}}
       {{> variableRules}}
     </section>

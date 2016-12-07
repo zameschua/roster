@@ -14,20 +14,13 @@ Template.planRoster.helpers({
 	}
 });
 
-var data = [
-	// Checking if the page have enough space for 31 columns
-	["Feb", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"],
-	["name1", 10, 11, 12, 13],
-	["name2", 20, 11, 14, 13],
-	["name3", 30, 15, 12, 13]
-];
 
 // Using handsontable for the excel-table
 // Docs:  https://docs.handsontable.com/pro/1.8.0/tutorial-introduction.html
 Template.excelTable.rendered = function() {
 	// Get the next month
 	var today = new Date();
-	var nextYear = today.getFullYear();
+	var nextYear = today.getFullYear(); // Year of the next month
 	var nextMonth = (today.getMonth() + 1) % 12; // NOTE: Jan is 0, Dec is 11. Follows Javascript's Date object implementation
 	if (nextMonth == 0) { // If month is in december, nextYear will be the next year
 		nextYear += 1; 
@@ -42,8 +35,11 @@ Template.excelTable.rendered = function() {
 	console.log(nextMonth);
 	console.log(weekends);
 
+	// Generate data to be displayed
+	var excelData = generateData(daysInNextMonth);
+
 	$("#excel-table").handsontable({
-	    data: data,
+	    data: excelData,
 	    minSpareRows: 1,
 	    colHeaders: true,
 	    contextMenu: true,
@@ -53,6 +49,8 @@ Template.excelTable.rendered = function() {
 	    manualRowResize: true,
 	    cells: function(row, col, prop) {
 	    	var cellProperties = {};
+
+	    	// Color all weekends grey
 	    	if ($.inArray(col, weekends) >= 0) {
 		        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -60,6 +58,7 @@ Template.excelTable.rendered = function() {
 				    td.style.background = '#DADFE1';
 				};
 		    }
+		    // Color headers dark grey
 		    if (row === 0 || col === 0) {
 		        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -68,7 +67,6 @@ Template.excelTable.rendered = function() {
 				    td.style.background = '#7f8c8d';
 				};
 		    }
-
 		    return cellProperties;
 	    }
 	});
@@ -93,3 +91,21 @@ function getWeekends(year, month, daysInMonth) {
 	return weekends;
 }
 
+function generateData(daysInNextMonth) {
+	var result = []
+
+	// Setting up header of the table
+	var header = [""];
+	for (i = 1; i <= daysInNextMonth; i++) {
+		header.push(i);
+	}
+	result.push(header);
+
+	// Get name for each user
+	var allUsers = Meteor.users.find();
+	allUsers.forEach(function(user) {
+		result.push([user.name]);
+	});
+
+	return result;
+};
