@@ -50,7 +50,27 @@ Template.excelTable.rendered = function() {
 	    fixedColumnsLeft: 1, // Fixed names column
 	    fixedRowsTop: 1, // Fixed dates row
 	    manualColumnResize: true,
-	    manualRowResize: true
+	    manualRowResize: true,
+	    cells: function(row, col, prop) {
+	    	var cellProperties = {};
+	    	if ($.inArray(col, weekends) >= 0) {
+		        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+				    Handsontable.renderers.TextRenderer.apply(this, arguments);
+				    td.style.background = '#DADFE1';
+				};
+		    }
+		    if (row === 0 || col === 0) {
+		        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+				    Handsontable.renderers.TextRenderer.apply(this, arguments);
+				    td.style.color = 'white';
+				    td.style.background = '#7f8c8d';
+				};
+		    }
+
+		    return cellProperties;
+	    }
 	});
 }
 
