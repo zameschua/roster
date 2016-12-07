@@ -46,6 +46,13 @@ Template.manageUsers.events({
       temp = post;
       // Show the modal (popup)
       $('#editModal').modal('show');
+      $('#editModal').on("shown.bs.modal",function(){
+        console.log(temp.roles);
+        $("#staffName").val(temp.name);
+        $('#staffTeam').val(temp.team);
+        $('#staffDate').val(temp.postOutDate);
+        $('#staffRole').val(temp.roles);
+      });
       
     }
   },
