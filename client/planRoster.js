@@ -8,6 +8,9 @@ import { Template } from 'meteor/templating';
 import './planRoster.html';
 import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 
+Meteor.subscribe('allUsers');
+var numOfRoles = 1; //number of roles needed per day. To be changed
+
 // Temporary global variable to refer to HandsOnTable in template.events
 var hot = "";
 var today = new Date();
@@ -41,6 +44,43 @@ Template.planRoster.events({
 	},
 });
 
+Template.excelTable.events({
+	'click #execute-btn': function(){
+		list = Meteor.users.find({}).fetch();
+		var staffCollection = generateStaffCollection(list);
+		for (var day = 1; day<=daysInNextMonth; day++){
+			staffCollection.forEach(function(staff) {
+				staff.reset();
+			});
+			for (var i = 0;i<numOfRoles;i++){
+				var priorityStaff = [];
+				var availableStaff = [];
+				staffCollection.forEach(function(staff){
+
+					if (staff.isAvailable(day)){
+						console.log("check availability:",staff.name,staff.pastDays);
+						availableStaff.push(staff);
+					}
+				});
+
+				var staffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+				console.log("least:",staffWithLeastPoints.name,staffWithLeastPoints.currentPoints);
+				availableStaff.forEach(function(staff){
+					if (staff.currentPoints == staffWithLeastPoints.currentPoints){
+						priorityStaff.push(staff);
+					}
+				});
+				var chosenStaff = getRandomStaff(priorityStaff);
+				chosenStaff.pastDays = 2;
+				chosenStaff.currentPoints += 1; //to be updated
+				chosenStaff.allocatedDates.push(day);
+				console.log("chosen:",chosenStaff.name,chosenStaff.currentPoints);
+			};
+		}
+		staffCollection.forEach(function(staff){console.log(staff.allocatedDates)});
+	},
+});
+
 // Using handsontable for the excel-table
 // Docs:  https://docs.handsontable.com/pro/1.8.0/tutorial-introduction.html
 Template.excelTable.rendered = function() {
@@ -55,11 +95,11 @@ Template.excelTable.rendered = function() {
 	var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
 
 	// Remove later!
-	console.log("year");
-	console.log(nextYear);
-	console.log("month");
-	console.log(nextMonth);
-	console.log(weekends);
+	//console.log("year");
+	//console.log(nextYear);
+	//console.log("month");
+	//console.log(nextMonth);
+	//console.log(weekends);
 
 	// Generate data to be displayed
 	var excelData = generateData(daysInNextMonth);
@@ -188,11 +228,103 @@ function generateData(daysInMonth) {
 		tableRow.preferredDates = user.preferredDates;
 		result.push(tableRow);
 	});
-	console.log(JSON.stringify(result));
+	//console.log(JSON.stringify(result));
 	return result;
 };
 
+//init Staff class
+var Staff = function(name, team, preferredDates, blockOutDates, postOutDate, carriedOverPoints){
+  this.name = name;
+  this.team = team;
+  this.preferredDates = preferredDates;
+  this.blockOutDates = blockOutDates;
+  this.postOutDate = postOutDate;
+  this.currentPoints = carriedOverPoints;
+  this.allocatedDates = [];
+  this.pastDays = 0; //integer to indicate number of days past since first duty
+  this.teamOnCall = false;
+  this.consecTeamOnCall = false;
+  
+} 
 
+// Checks if staff is available to work on that day
+Staff.prototype.isAvailable = function(day) {
+	var nextDate = nextYear + '/' + (((nextMonth+1).toString().length == 2) ? nextMonth+1 : '0' + (nextMonth+1)) + '/' + (((day+1).toString().length == 2) ? (day+1) : '0' + (day+1));
+	//if staff choose to block out current day
+	if (this.blockOutDates.indexOf(day) > -1){
+		return false;
+	}
+	//if staff's blockOutDate is next day
+	else if (this.blockOutDates.indexOf(day+1) > -1){
+		return false;
+	}
+	//if staff's postOutDate is next day
+	else if (nextDate == this.postOutDate){
+		return false;
+	}
+	//arbitruary conditions
+	else if (this.teamOnCall || this.consecTeamOnCall || this.pastDays != 0){
+		return false;
+	}
+	else{
+		return true;
+	}
+}
+
+// Takes in array of Staff, returns the staff with least points.
+// If 2 people have the same points, return the first staff
+function getStaffWithLeastPoints(arr) {
+  var currentLowestStaff = arr[0];
+  arr.forEach(function(staff) {
+    if (staff.currentPoints <= currentLowestStaff.currentPoints) {
+      currentLowestStaff = staff;
+    }
+  });
+  return currentLowestStaff;
+}
+
+// Takes in an array of staffs, returns a random staff
+function getRandomStaff(arr) {
+  var randomIndex = Math.floor(Math.random() * arr.length);
+  return arr[randomIndex];
+};
+
+// Run at the start of each day
+// Reset the staff's state for the next day
+Staff.prototype.reset = function() {
+  // Reduce the number of days since the staff was on call
+  if (this.pastDays > 0) {
+    this.pastDays -= 1; 
+  }
+  // Reset consecTeamOnCall
+  if (this.consecTeamOnCall === true) {
+    this.consecTeamOnCall = false;  
+  }
+  // Someone on the team was on call the previous day
+  if (this.teamOnCall === true) {
+    this.consecTeamOnCall = true;
+    this.teamOnCall = false;
+  }
+}
+
+//function to create staffCollection array from Meteor.users
+//returns an array of Staff
+function generateStaffCollection(obj){
+	var staffCollection = [];
+	for (var i = 0; i < obj.length; i++){
+		user = obj[i];
+		var json = new Staff(
+			user.name,
+			user.team,
+			user.preferredDates[nextYear][nextMonth],
+			user.blockOutDates[nextYear][nextMonth],
+			user.postOutDate,
+			user.carriedOverPoints,	
+		);
+		staffCollection.push(json);
+	};
+	return staffCollection;
+}
 
 // TO DO: Ask about how they want to structure groups
 // Load and save feature

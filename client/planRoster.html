@@ -166,10 +166,14 @@ This page is NOT mobile friendly
 <!-- Putting extelTable in its own template if not the template.onRendered() won't load correctly -->
 <template name='excelTable'>
   <div class="row">
+    <div class="col-sm-3">
+      <button type="button" class="btn btn-block btn-success btn-flat" id="execute-btn">execute</button>
+    </div>
     <div class="col-sm-12">
       <div id="excel-table"></div>
     </div>
-  </div>
+
+  </div>  
 </template>
 
 <template name='variableRules'>
