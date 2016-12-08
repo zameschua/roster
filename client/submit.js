@@ -36,14 +36,16 @@ Template.submit.helpers({
 	},**/
 	select: function(){
 		return function( start, end, jsEvent, view){
+
 			var temp = start;
 			var startDate = start.date();
-			var endDate = end.date();
+			var endDate = (end.month() <= start.month()) ? end.date() : end.date() + start.daysInMonth();			
 			var color = (state==0) ? '#e74c3c' : 'green';
 			for (var i=0;i<endDate-startDate;i++){
 				if (stateIsOn(temp,state)) {
 		        	(state == 0) ? toggleOff(blockOutDays,temp,state) : toggleOff(preferredDays,temp,state) ;
 		        } else {
+
 		        	toggleOn(temp,color,state);
 		        }				
 		       	temp = temp.add(1,'d');
@@ -77,7 +79,14 @@ Template.submit.helpers({
 	defaultDate: function(){
 		return targetDate;
 	},
-	
+	selectConstraint : function(){
+		temp = moment().add(2,'M');
+		console.log(targetDate.format("YYYY-MM") + "-01");
+		return {
+			start: targetDate.format("YYYY-MM") + "-01",
+			end: temp.format("YYYY-MM") + "-01",
+		};
+	},
 });
 
 Template.submit.events({
