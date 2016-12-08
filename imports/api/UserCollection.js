@@ -1,4 +1,8 @@
 const Schema = {};
+var currMoment = new Date();
+currMoment.setMonth(currMoment.getMonth() + 1);
+var month = currMoment.getMonth();
+var year = currMoment.getFullYear();
 
 Schema.User = new SimpleSchema({
     emails: {
@@ -41,10 +45,11 @@ Schema.User = new SimpleSchema({
         optional: true
     },
     name: {type: String, label: 'name', defaultValue: "undefined"},
-    preferredDates: {type: Object, label: 'preferred dates', defaultValue: {}},
-    blockOutDates: {type: Object, label: 'block-out dates', defaultValue: {}},
+    preferredDates: {type: Object, label: 'preferred dates', defaultValue: { year : {month : [] } }};
+    blockOutDates: {type: Object, label: 'block-out dates', defaultValue: { year : {month : [] } }};
+    leaveDates: {type: Object, label: 'leave dates', defaultValue: { year : {month : [] } }};
     carriedOverPoints: {type: Number, label: 'carried over points', defaultValue: 0},
-    allocatedDates: {type: Object, label: 'allocated dates', defaultValue: {}},
+    allocatedDates: {type: Object, label: 'allocated dates', defaultValue: { year : {month : [] } }};
     postOutDate: {type: Date, label: 'post out date', defaultValue: new Date()},
     team: {type: String, label: 'team', defaultValue: "undefined"},
 });

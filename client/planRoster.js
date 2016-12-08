@@ -8,9 +8,6 @@ import { Template } from 'meteor/templating';
 import './planRoster.html';
 import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 
-Meteor.subscribe('allUsers');
-var numOfRoles = 1; //number of roles needed per day. To be changed
-
 // Temporary global variable to refer to HandsOnTable in template.events
 var hot = "";
 var today = new Date();
@@ -21,6 +18,13 @@ if (nextMonth == 0) { // If month is in december, nextYear will be the next year
 }
 var daysInNextMonth = daysInMonth(nextYear, nextMonth);
 var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
+
+
+Meteor.subscribe('allUsers');
+var numOfRoles = 1; //number of roles needed per day. To be changed
+var publicHolidayDates = []
+
+
 
 Template.planRoster.helpers({
 	// Show additional menu items if user is admin
@@ -46,8 +50,19 @@ Template.planRoster.events({
 
 Template.excelTable.events({
 	'click #execute-btn': function(){
+		var monthWeightage = getMonthWeightage(nextYear,nextMonth,{
+			0 : 2,	//sunday
+			1 : 1,	//monday
+			2 : 1,	//tuesday
+			3 : 1,	//wednesday
+			4 : 1,	//thursday
+			5 : 1.5,	//friday
+			6 : 2,	//saturday
+			ph : 2,	//public holiday
+			});
 		list = Meteor.users.find({}).fetch();
 		var staffCollection = generateStaffCollection(list);
+
 		for (var day = 1; day<=daysInNextMonth; day++){
 			staffCollection.forEach(function(staff) {
 				staff.reset();
@@ -58,26 +73,23 @@ Template.excelTable.events({
 				staffCollection.forEach(function(staff){
 
 					if (staff.isAvailable(day)){
-						console.log("check availability:",staff.name,staff.pastDays);
 						availableStaff.push(staff);
 					}
 				});
 
 				var staffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
-				console.log("least:",staffWithLeastPoints.name,staffWithLeastPoints.currentPoints);
 				availableStaff.forEach(function(staff){
 					if (staff.currentPoints == staffWithLeastPoints.currentPoints){
 						priorityStaff.push(staff);
 					}
 				});
 				var chosenStaff = getRandomStaff(priorityStaff);
-				chosenStaff.pastDays = 2;
-				chosenStaff.currentPoints += 1; //to be updated
+				chosenStaff.pastDays = 3;
+				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
 				chosenStaff.allocatedDates.push(day);
-				console.log("chosen:",chosenStaff.name,chosenStaff.currentPoints);
 			};
 		}
-		staffCollection.forEach(function(staff){console.log(staff.allocatedDates)});
+		staffCollection.forEach(function(staff){console.log(staff.name,staff.currentPoints)});
 	},
 });
 
@@ -326,6 +338,22 @@ function generateStaffCollection(obj){
 	return staffCollection;
 }
 
+//creates an array of weightages of each day in the month
+//weightageSettings = {day (e.g. sunday = 0, monday = 1...) : weightage , 'ph' (public holiday) : weightage}
+function getMonthWeightage(year, month, weightageSettings){
+	var daysOfMonth = daysInMonth(year,month);
+	var weightage = [];
+	for (var i = 1; i <= daysOfMonth; i++){    // Looping through days in month
+	    var newDate = new Date(year, month , i);
+	    if (publicHolidayDates.indexOf(i) != -1){	//if public holiday
+	    	weightage.push(weightageSettings['ph']);
+	    }
+	    else{	//else if normal day of the week
+	    	weightage.push(weightageSettings[newDate.getDay()]);
+	    }
+	}
+	return weightage;	
+}
 // TO DO: Ask about how they want to structure groups
 // Load and save feature
 // variable rules!

@@ -1,6 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 
+var currMoment = new Date();
+currMoment.setMonth(currMoment.getMonth() + 1);
+var month = currMoment.getMonth();
+var year = currMoment.getFullYear();
+
 Meteor.startup(() => {
 	// Publish collections to all users for now
 	// Switch to admin later
@@ -45,10 +50,11 @@ Accounts.onCreateUser(function(options, user) {
 	    user.profile = options.profile;
 	}
     user.name = 'undefined';
-    user.preferredDates = {};
-    user.blockOutDates = {};
+    user.preferredDates = { year : {month : [] } };
+    user.blockOutDates = { year : {month : [] } };
+    user.leaveDates = { year : {month : [] } };
     user.carriedOverPoints = 0;
-    user.allocatedDates = {},
+    user.allocatedDates = { year : {month : [] } };
     user.postOutDate = new Date();
     user.team = "undefined";
     user.roles = "normal";

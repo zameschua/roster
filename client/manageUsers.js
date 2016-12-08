@@ -21,6 +21,7 @@ Template.manageUsers.helpers({
           {key: 'postOutDate', label: "Post out date"},
           {key: 'preferredDates.' + targetDate.year() + '.' + targetDate.month(), label: 'Preferred dates'},
           {key: 'blockOutDates.' + targetDate.year() + '.' + targetDate.month(), label: 'Block out dates'},
+          {key: 'leaveDates.'+ targetDate.year() + '.' + targetDate.month(), label: 'Leave dates'},
           {key: 'allocatedDates.' + targetDate.year() + '.' + targetDate.month(), label: 'Allocated Dates'},
           {key: 'carriedOverPoints', label: 'Carried over points'},
           {key: 'roles', label: 'Role'},
@@ -109,7 +110,6 @@ Template.manageUsers.events({
         return;
       }
     }
-    console.log($('#newStaffDate').val());
     var obj = {
       name: $('#newStaffName').val(),
       team: $('#newStaffTeam').val(),
