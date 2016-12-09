@@ -1,3 +1,65 @@
 <template name="login">
-	{{> loginButtons}}
+
+
+<body>
+    <div id="app_wrapper">
+        <div class="container">
+            <section id="login-wrapper">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6 col-md-offset-3">
+                        <div class="card">
+                            <button role="button" class="btn btn-white btn-fab btn-close"><i class="fa fa-close"></i></button>
+                            <button role="button" class="btn btn-primary btn-fab btn-open"><i class="fa fa-plus"></i></button>
+                            <div id="signup_wrapper">
+                                <header class="card-heading">
+                                    <h2 class="card-title alt-title">Register</h2>
+                                </header>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="form-group label-floating is-empty">
+                                            <label class="control-label white">Email</label>
+                                            <input type="email" class="form-control white" id="register-email" autocomplete="off">
+                                        </div>
+                                        <div class="form-group label-floating is-empty">
+                                            <label class="control-label white">Password</label>
+                                            <input type="password" class="form-control white" id="register-password">
+                                        </div>
+
+                                          <a class="btn btn-white btn-block m-t-30" id="register">Submit</a>
+                                    </form>
+                                </div>
+                            </div>
+                            <div id="login_wrapper">
+                                <header class="card-heading">
+                                    <h2 class="card-title">Login</h2>
+                                </header>
+                                <div class="card-body">
+                                    <form>
+                                        <div class="form-group label-floating is-empty">
+                                            <label class="control-label">Email</label>
+                                            <input type="email" class="form-control" id="login-email" autocomplete="off">
+                                        </div>
+                                        <div class="form-group label-floating is-empty">
+                                            <label class="control-label">Password</label>
+                                            <input type="password" class="form-control" id="login-password">
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                              <input type="checkbox"> Remember Me
+                                            </label>
+                                        </div>
+                                        <a class="btn btn-primary btn-block m-t-30" id="login">Submit</a>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+
+
+
 </template>

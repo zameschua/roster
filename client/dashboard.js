@@ -2,8 +2,20 @@ import { Template } from 'meteor/templating';
  
 import './dashboard.html';
 
+Template.dashboard.events({
+  'click #sign-out': function() {
+    Meteor.logout(function(e) {
+      if (e) {
+        alert(e); // Alert if there is error
+      }
+    });
+  }
+});
 
 Template.dashboard.helpers({
+  username: function() {
+    return Meteor.user().name;
+  },
 	// Show additional buttons if user is admin
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
@@ -13,8 +25,7 @@ Template.dashboard.helpers({
 Template.dashboard.rendered = function() {
 	setTimeout(function(){ 
 		if (Meteor.user().name == "undefined") {
-
-			Modal.show('firstLogin'); // Todo: Show modal only when user first log in
+			Modal.show('firstLogin');
 		}
 	}, 1000);
 };
