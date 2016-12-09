@@ -125,6 +125,7 @@ Template.excelTable.rendered = function() {
 	    data: excelData,
 	    colHeaders: colHeaders,
 	    columns: colSchema,
+	    rowHeaders: [1,2,3,4],
 	    contextMenu: true,
 	    fixedColumnsLeft: 1, // Fixed names column
 	    fixedRowsTop: 1, // Fixed dates row
