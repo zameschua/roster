@@ -79,41 +79,75 @@ Template.excelTable.events({
 				staff.reset();
 			});
 			for (var i = 0;i<numOfRoles;i++){
-				var priorityStaff = [];
-				var availableStaff = [];
-				staffCollection.forEach(function(staff){
+				//array of staff who has preferred date on the day
+				var preferredAvailableStaff = datesWithPreference[day.toString()];
+				var priorityStaff = [];		//array of staff to be chosen
+				var availableStaff = [];	//array of staff who is available (not including staff with block out days)
+
+				staffCollection.forEach(function (staff){
 					if (staff.isAvailable(day)){
 						availableStaff.push(staff);
 					}
 				});
 
-				if (occupiedWithPreferredDates.indexOf(day) != -1){
+				var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+				try{
+					var preferredStaffWithLeastPoints = getStaffWithLeastPoints(preferredAvailableStaff);
+				} catch(err){
+					var preferredStaffWithLeastPoints = new Staff(undefined, undefined, undefined, undefined, undefined, undefined, 0);
+				}
+				
+				if (occupiedWithPreferredDates.indexOf(day) != -1 && preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2){
 					//if this date has people who want to do duty
+					//and has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
 					//prioritize them first
-					var preferredStaff = datesWithPreference[day.toString()];
-					var staffWithLeastPoints = getStaffWithLeastPoints(preferredStaff);	
-					preferredStaff.forEach(function(staff){
-						if (staff.currentPoints == staffWithLeastPoints.currentPoints){
+					preferredAvailableStaff.forEach(function(staff){
+						if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints){
 							priorityStaff.push(staff);
 						}
 					});
 				}
 				else{
-					var staffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+					var blockOutFiltered = [];
 					availableStaff.forEach(function(staff){
-						if (staff.currentPoints == staffWithLeastPoints.currentPoints){
-							priorityStaff.push(staff);
+						if (staff.blockOutDates.indexOf(day) == -1){
+							blockOutFiltered.push(staff);
 						}
-					});					
+					});
+					if (blockOutFiltered.length == 0){
+						var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+						availableStaff.forEach(function(staff){
+							if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
+								priorityStaff.push(staff);
+							}
+						});								
+					}
+					else{
+						var availableStaffWithLeastPoints = getStaffWithLeastPoints(blockOutFiltered);
+						blockOutFiltered.forEach(function(staff){
+							if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
+								priorityStaff.push(staff);
+							}
+						});								
+					}
+			
 				}
 
 				var chosenStaff = getRandomStaff(priorityStaff);
 				chosenStaff.pastDays = 3;
 				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
 				chosenStaff.allocatedDates.push(day);
+				staffCollection.forEach(function (staff){
+					if (staff.team == chosenStaff.team){
+						staff.teamOnCall = true;
+					}
+				});
 			};
 		}
-		staffCollection.forEach(function(staff){console.log(staff.name,staff.currentPoints)});
+		staffCollection.forEach(function(staff){
+			console.log(staff.name,staff.currentPoints);
+			console.log(staff.allocatedDates);
+		});
 	},
 });
 
@@ -322,13 +356,13 @@ Staff.prototype.isAvailable = function(day) {
 // Takes in array of Staff, returns the staff with least points.
 // If 2 people have the same points, return the first staff
 function getStaffWithLeastPoints(arr) {
-  var currentLowestStaff = arr[0];
-  arr.forEach(function(staff) {
-    if (staff.currentPoints <= currentLowestStaff.currentPoints) {
-      currentLowestStaff = staff;
-    }
-  });
-  return currentLowestStaff;
+	var currentLowestStaff = arr[0];
+	arr.forEach(function(staff) {
+	if (staff.currentPoints <= currentLowestStaff.currentPoints) {
+	  currentLowestStaff = staff;
+	}
+	});
+	return currentLowestStaff;
 }
 
 // Takes in an array of staffs, returns a random staff
