@@ -63,6 +63,17 @@ Template.excelTable.events({
 		list = Meteor.users.find({}).fetch();
 		var staffCollection = generateStaffCollection(list);
 
+		//allocate duty dates to those with preferred dates
+		
+		var datesWithPreference = getPreference(staffCollection);
+		var occupiedWithPreferredDates = [];
+		Object.keys(datesWithPreference).forEach(function (key){
+			occupiedWithPreferredDates.push(parseInt(key));
+			preferredStaff = datesWithPreference[key];
+
+
+		});
+
 		for (var day = 1; day<=daysInNextMonth; day++){
 			staffCollection.forEach(function(staff) {
 				staff.reset();
@@ -71,18 +82,31 @@ Template.excelTable.events({
 				var priorityStaff = [];
 				var availableStaff = [];
 				staffCollection.forEach(function(staff){
-
 					if (staff.isAvailable(day)){
 						availableStaff.push(staff);
 					}
 				});
 
-				var staffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
-				availableStaff.forEach(function(staff){
-					if (staff.currentPoints == staffWithLeastPoints.currentPoints){
-						priorityStaff.push(staff);
-					}
-				});
+				if (occupiedWithPreferredDates.indexOf(day) != -1){
+					//if this date has people who want to do duty
+					//prioritize them first
+					var preferredStaff = datesWithPreference[day.toString()];
+					var staffWithLeastPoints = getStaffWithLeastPoints(preferredStaff);	
+					preferredStaff.forEach(function(staff){
+						if (staff.currentPoints == staffWithLeastPoints.currentPoints){
+							priorityStaff.push(staff);
+						}
+					});
+				}
+				else{
+					var staffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+					availableStaff.forEach(function(staff){
+						if (staff.currentPoints == staffWithLeastPoints.currentPoints){
+							priorityStaff.push(staff);
+						}
+					});					
+				}
+
 				var chosenStaff = getRandomStaff(priorityStaff);
 				chosenStaff.pastDays = 3;
 				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
@@ -174,6 +198,14 @@ Template.excelTable.rendered = function() {
 				    Handsontable.renderers.TextRenderer.apply(this, arguments);
 				    td.style.background = '#EC644B';
 				};
+			}
+			// Color leave dates cyan
+		    if ($.inArray(col - 1, excelData[row]["leaveDates"][nextYear][nextMonth]) >= 0) {
+		    	cellProperties.readOnly = true;
+		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
+				    Handsontable.renderers.TextRenderer.apply(this, arguments);
+				    td.style.background = '#5bc0de';
+				};			
 		    }
 		    return cellProperties;
 	    }
@@ -239,6 +271,7 @@ function generateData(daysInMonth) {
 		}
 		tableRow.blockOutDates = user.blockOutDates;
 		tableRow.preferredDates = user.preferredDates;
+		tableRow.leaveDates = user.leaveDates;
 		result.push(tableRow);
 	});
 	//console.log(JSON.stringify(result));
@@ -246,12 +279,13 @@ function generateData(daysInMonth) {
 };
 
 //init Staff class
-var Staff = function(name, team, preferredDates, blockOutDates, postOutDate, carriedOverPoints){
+var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, postOutDate, carriedOverPoints){
   this.name = name;
   this.team = team;
   this.preferredDates = preferredDates;
   this.blockOutDates = blockOutDates;
   this.postOutDate = postOutDate;
+  this.leaveDates = leaveDates
   this.currentPoints = carriedOverPoints;
   this.allocatedDates = [];
   this.pastDays = 0; //integer to indicate number of days past since first duty
@@ -264,11 +298,11 @@ var Staff = function(name, team, preferredDates, blockOutDates, postOutDate, car
 Staff.prototype.isAvailable = function(day) {
 	var nextDate = nextYear + '/' + (((nextMonth+1).toString().length == 2) ? nextMonth+1 : '0' + (nextMonth+1)) + '/' + (((day+1).toString().length == 2) ? (day+1) : '0' + (day+1));
 	//if staff choose to block out current day
-	if (this.blockOutDates.indexOf(day) > -1){
+	if (this.leaveDates.indexOf(day) > -1){
 		return false;
 	}
 	//if staff's blockOutDate is next day
-	else if (this.blockOutDates.indexOf(day+1) > -1){
+	else if (this.leaveDates.indexOf(day+1) > -1){
 		return false;
 	}
 	//if staff's postOutDate is next day
@@ -283,6 +317,8 @@ Staff.prototype.isAvailable = function(day) {
 		return true;
 	}
 }
+
+//allocate  
 
 // Takes in array of Staff, returns the staff with least points.
 // If 2 people have the same points, return the first staff
@@ -331,6 +367,7 @@ function generateStaffCollection(obj){
 			user.team,
 			user.preferredDates[nextYear][nextMonth],
 			user.blockOutDates[nextYear][nextMonth],
+			user.leaveDates[nextYear][nextMonth],
 			user.postOutDate,
 			user.carriedOverPoints,	
 		);
@@ -355,6 +392,24 @@ function getMonthWeightage(year, month, weightageSettings){
 	}
 	return weightage;	
 }
+
+//returns an object with dates that has preference by staff and an array of staff themselves
+//e.g. {23 : [Object Staff1, Object Staff2], 24 : [Object Staff4]}
+function getPreference(staffCollection){
+	var obj = {};
+	staffCollection.forEach(function (staff){
+		var prefer = staff.preferredDates;
+		prefer.forEach(function (date){
+			if (obj[date] == undefined){	//if no one prefers to do this date
+				obj[date] = [];
+			}
+			obj[date].push(staff);
+		});
+	});
+	return obj;
+}
+
+
 // TO DO: Ask about how they want to structure groups
 // Load and save feature
 // variable rules!
