@@ -7,6 +7,9 @@ var targetDate = moment().add(1,'M');
 
 
 Template.manageUsers.helpers({
+  username: function() {
+    return Meteor.user().name;
+  },
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
 	},
@@ -41,6 +44,13 @@ Template.addStaffButton.helpers({
 });
 
 Template.manageUsers.events({
+  'click #sign-out': function() {
+    Meteor.logout(function(e) {
+      if (e) {
+        alert(e); // Alert if there is error
+      }
+    });
+  },
   'click .reactive-table tbody tr': function (event) {
     var post = this;
 

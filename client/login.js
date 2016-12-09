@@ -19,8 +19,6 @@ Template.login.events({
 	'click #login': function() {
 		var email = $('#login-email').val();
 		var password = $('#login-password').val();
-		console.log(email);
-		console.log(password);
 		Meteor.loginWithPassword(email, password, function(e) {
 			if (e) {
 				alert(e + "Please contact admin for help!"); // If error on create

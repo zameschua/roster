@@ -27,6 +27,9 @@ var publicHolidayDates = []
 
 
 Template.planRoster.helpers({
+	username: function() {
+		return Meteor.user().name;
+	},
 	// Show additional menu items if user is admin
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
@@ -34,6 +37,13 @@ Template.planRoster.helpers({
 });
 
 Template.planRoster.events({
+	'click #sign-out': function() {
+	Meteor.logout(function(e) {
+	  if (e) {
+	    alert(e); // Alert if there is error
+	  }
+	});
+	},
 	'click #load-btn': function() {
 		var data = RosterDataCollection.findOne().year.month;
 

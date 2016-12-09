@@ -1,7 +1,7 @@
 
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,600,700');
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600|Poppins:400,600,700');
-body {
+#app_wrapper {
     background: url("/login-bg.jpg") no-repeat center center fixed;
     -webkit-background-size: cover;
     -khtml-background-size: cover;
@@ -309,11 +309,6 @@ a.btn.btn-white:focus, a.btn.btn-white:active {
 
 .card .card-heading .card-title.alt-title {
     color: #fff!important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: #4E5D6F!important;
-    font-weight: 200;
 }
 
 .card.type--scheduler h4, h1, h2, h3, h4, h5, h6 {

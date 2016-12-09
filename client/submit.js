@@ -19,6 +19,9 @@ Template.submit.onRendered(function(){
 });
 
 Template.submit.helpers({
+	username: function() {
+		return Meteor.user().name;
+	},
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
 	},
@@ -116,6 +119,13 @@ Template.submit.helpers({
 });
 
 Template.submit.events({
+	'click #sign-out': function() {
+	Meteor.logout(function(e) {
+	  if (e) {
+	    alert(e); // Alert if there is error
+	  }
+	});
+	},
 	// Updates user's profile on click of submit button
 	'click #submit-btn': function() {
 		preferredDays.sort(function(a, b){return a-b});
