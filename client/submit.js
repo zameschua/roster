@@ -171,14 +171,15 @@ function toggleOn(date,color,state) {
 	var day = parseInt(date.format('DD'));
 	switch (state){
 		case 0:
-			if (preferredDays.indexOf(day) == -1){
-				preferredDays.push(day);
-			};
-			break;
-		case 1:
 			if (blockOutDays.indexOf(day) == -1){
 				blockOutDays.push(day);
-			};
+			};		
+
+			break;
+		case 1:
+			if (preferredDays.indexOf(day) == -1){
+				preferredDays.push(day);
+			};			
 			break;			
 		case 2:
 			if (leaveDays.indexOf(day) == -1){
