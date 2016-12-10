@@ -128,6 +128,7 @@ Template.excelTable.events({
 					});
 					if (blockOutFiltered.length == 0){
 						var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+						console.log(availableStaff);
 						availableStaff.forEach(function(staff){
 							if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
 								priorityStaff.push(staff);
@@ -146,7 +147,7 @@ Template.excelTable.events({
 				}
 
 				var chosenStaff = getRandomStaff(priorityStaff);
-				chosenStaff.pastDays = 3;
+				chosenStaff.pastDays = 1;
 				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
 				chosenStaff.allocatedDates.push(day);
 				staffCollection.forEach(function (staff){
@@ -330,7 +331,7 @@ var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, post
   this.team = team;
   this.preferredDates = preferredDates;
   this.blockOutDates = blockOutDates;
-  this.postOutDate = postOutDate;
+  this.postOutDate = new Date(postOutDate);	//date object
   this.leaveDates = leaveDates
   this.currentPoints = carriedOverPoints;
   this.allocatedDates = [];
@@ -342,7 +343,7 @@ var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, post
 
 // Checks if staff is available to work on that day
 Staff.prototype.isAvailable = function(day) {
-	var nextDate = nextYear + '/' + (((nextMonth+1).toString().length == 2) ? nextMonth+1 : '0' + (nextMonth+1)) + '/' + (((day+1).toString().length == 2) ? (day+1) : '0' + (day+1));
+	var nextDate = new Date(nextYear,nextMonth,day+1);
 	//if staff choose to block out current day
 	if (this.leaveDates.indexOf(day) > -1){
 		return false;
@@ -352,7 +353,7 @@ Staff.prototype.isAvailable = function(day) {
 		return false;
 	}
 	//if staff's postOutDate is next day
-	else if (nextDate == this.postOutDate){
+	else if (nextDate >= this.postOutDate){
 		return false;
 	}
 	//arbitruary conditions
