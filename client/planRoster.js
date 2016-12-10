@@ -8,8 +8,11 @@ import { Template } from 'meteor/templating';
 import './planRoster.html';
 import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 
+var staffCollection = []; 
+var excelTable = false;
+var globalExcelData = [];
+
 // Temporary global variable to refer to HandsOnTable in template.events
-var hot = "";
 var today = new Date();
 var nextYear = today.getFullYear(); // Year of the next month
 var nextMonth = (today.getMonth() + 1) % 12; // NOTE: Jan is 0, Dec is 11. Follows Javascript's Date object implementation
@@ -21,8 +24,11 @@ var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
 
 
 Meteor.subscribe('allUsers');
-var numOfRoles = 1; //number of roles needed per day. To be changed
-var publicHolidayDates = []
+var numOfRoles = 1; // Number of roles needed per day. To be changed
+var publicHolidayDates = [];
+
+
+
 
 
 
@@ -59,19 +65,20 @@ Template.planRoster.events({
 });
 
 Template.excelTable.events({
+	// ------------------------------------ Excuting the allocation of dates ---------------------------------------------------
 	'click #execute-btn': function(){
 		var monthWeightage = getMonthWeightage(nextYear,nextMonth,{
-			0 : 2,	//sunday
-			1 : 1,	//monday
-			2 : 1,	//tuesday
-			3 : 1,	//wednesday
-			4 : 1,	//thursday
-			5 : 1.5,	//friday
-			6 : 2,	//saturday
-			ph : 2,	//public holiday
+			0 : 2,	// Sunday
+			1 : 1,	// Monday
+			2 : 1,	// Tuesday
+			3 : 1,	// Wednesday
+			4 : 1,	// Thursday
+			5 : 1.5,	// Friday
+			6 : 2,	// Saturday
+			ph : 2,	// Public holiday
 			});
-		list = Meteor.users.find({}).fetch();
-		var staffCollection = generateStaffCollection(list);
+		
+
 
 		// Allocate duty dates to those with preferred dates
 		
@@ -85,7 +92,7 @@ Template.excelTable.events({
 		});
 
 		// For each day
-		for (var day = 1; day<=daysInNextMonth; day++){
+		for (var day = 1; day <= daysInNextMonth; day++){
 			staffCollection.forEach(function(staff) {
 				staff.reset();
 			});
@@ -110,9 +117,9 @@ Template.excelTable.events({
 				}
 				
 				if (occupiedWithPreferredDates.indexOf(day) != -1 && preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2){
-					//if this date has people who want to do duty
-					//and has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
-					//prioritize them first
+					// If this date has people who want to do duty
+					// And has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
+					// Prioritize them first
 					preferredAvailableStaff.forEach(function(staff){
 						if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints){
 							priorityStaff.push(staff);
@@ -160,48 +167,34 @@ Template.excelTable.events({
 			console.log(staff.name,staff.currentPoints);
 			console.log(staff.allocatedDates);
 		});
+
+		updateExcelData();
 	},
 });
 
+// -------------------------------------- Generating the excel Table ---------------------------------------------------
 // Using handsontable for the excel-table
 // Docs:  https://docs.handsontable.com/pro/1.8.0/tutorial-introduction.html
 Template.excelTable.rendered = function() {
-	// Get the next month
-	var today = new Date();
-	var nextYear = today.getFullYear(); // Year of the next month
-	var nextMonth = (today.getMonth() + 1) % 12; // NOTE: Jan is 0, Dec is 11. Follows Javascript's Date object implementation
-	if (nextMonth == 0) { // If month is in december, nextYear will be the next year
-		nextYear += 1; 
-	}
-	var daysInNextMonth = daysInMonth(nextYear, nextMonth);
-	var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
+	// Initialise staff collection
+	var list = Meteor.users.find({}).fetch();
+	staffCollection = generateStaffCollection(list);
 
-	// Remove later!
-	//console.log("year");
-	//console.log(nextYear);
-	//console.log("month");
-	//console.log(nextMonth);
-	//console.log(weekends);
-
-	// Generate data to be displayed
-	var excelData = generateData(daysInNextMonth);
-
+	// Generate empty data to be displayed
+	globalExcelData = generateEmptyData();
 	var colHeaders = generateColHeaders(daysInNextMonth);
-	var colSchema = generateColSchema(daysInNextMonth);
 
 	// Initialise HandsOnTable
 	var container = document.getElementById('excel-table');
-	var excelTable = new Handsontable(container, {
-	    data: excelData,
+	excelTable = new Handsontable(container, {
+	    data: globalExcelData,
 	    colHeaders: colHeaders,
-	    columns: colSchema,
-	    rowHeaders: [1,2,3,4],
 	    contextMenu: true,
 	    fixedColumnsLeft: 1, // Fixed names column
 	    fixedRowsTop: 1, // Fixed dates row
 	    manualColumnResize: true,
 	    manualRowResize: true,
-	    copyPaste: true,
+	    observeChanges: true,
 	    colWidths: function(col) {
 	    	if (col === 0) {
 	    		return 120; // Width of first column
@@ -212,7 +205,7 @@ Template.excelTable.rendered = function() {
 	    cells: function(row, col, prop) {
 	    	var cellProperties = {};
 
-	    	// Color all weekends grey
+	    	// Color all the weekends grey
 	    	if ($.inArray(col, weekends) >= 0) {
 		        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -220,7 +213,7 @@ Template.excelTable.rendered = function() {
 				    td.style.background = '#DADFE1';
 				};
 		    }
-		    // Color names dark grey
+		    // Color the column with names dark grey
 		    if (col === 0) {
 		        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -230,7 +223,7 @@ Template.excelTable.rendered = function() {
 				};
 		    }
 		    // Color preferred dates red
-		    if ($.inArray(col - 1, excelData[row]["preferredDates"][nextYear][nextMonth]) >= 0) {
+		    if ($.inArray(col, staffCollection[row].preferredDates) >= 0) {
 		    	cellProperties.readOnly = true;
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
 				    Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -238,7 +231,7 @@ Template.excelTable.rendered = function() {
 				};
 		    }
 		    // Color block-out dates green
-		    if ($.inArray(col - 1, excelData[row]["blockOutDates"][nextYear][nextMonth]) >= 0) {
+		    if ($.inArray(col, staffCollection[row].blockOutDates) >= 0) {
 		    	cellProperties.readOnly = true;
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
 				    Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -246,17 +239,17 @@ Template.excelTable.rendered = function() {
 				};
 			}
 			// Color leave dates cyan
-		    if ($.inArray(col - 1, excelData[row]["leaveDates"][nextYear][nextMonth]) >= 0) {
+		    if ($.inArray(col, staffCollection[row].leaveDates) >= 0) {
 		    	cellProperties.readOnly = true;
 		    	cellProperties.renderer = function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
 				    Handsontable.renderers.TextRenderer.apply(this, arguments);
 				    td.style.background = '#5bc0de';
 				};			
 		    }
+		    
 		    return cellProperties;
 	    }
 	});
-	hot = excelTable;
 }
 
 
@@ -283,18 +276,32 @@ function getWeekends(year, month, daysInMonth) {
 // Refer to HandsOnTable Object data source with column mapping (nested)
 function generateColHeaders(daysInMonth) {
 	var headers = ["Name"];
-	for (i = 1; i <= daysInMonth; i++) {
+	for (var i = 1; i <= daysInMonth; i++) {
 		headers.push(i);
 	}
 	return headers;
 }
 
-function generateColSchema(daysInMonth) {
-	var schema = [{data: "name"}];
-	for (i = 1; i <= daysInMonth; i++) {
-		schema.push({data: i});
+function generateEmptyData() {
+	var excelData = [];
+	staffCollection.forEach(function(staff) {
+		var staffData = [staff.name];
+		for (var i = 1; i <= daysInNextMonth; i++) {
+			staffData.push("");
+		}
+		excelData.push(staffData);
+	});
+	return excelData;
+}
+
+// Generate data to be displayed in excel table
+// Data is in the form [[name, "", "x", ""..], [name2, "", "x", ""..]]
+function updateExcelData() {
+	for (var i = 0; i < staffCollection.length; i++) {
+		staffCollection[i].allocatedDates.forEach(function(j) {
+			globalExcelData[i][j] = "x";
+		});
 	}
-	return schema;
 }
 
 /* Structure of the data
@@ -302,7 +309,7 @@ function generateColSchema(daysInMonth) {
 {name: "Zames", "1": "", "2": "", .... blockOutDates: [], preferredDates: []}
 {name: "Chen Kuang", "1": "", "2": "", .... blockOutDates: [], preferredDates: []}
 ]
-*/
+
 function generateData(daysInMonth) {
 	var result = [];
 
@@ -323,6 +330,7 @@ function generateData(daysInMonth) {
 	//console.log(JSON.stringify(result));
 	return result;
 };
+*/
 
 // Init Staff class
 var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, postOutDate, carriedOverPoints){
@@ -402,8 +410,8 @@ Staff.prototype.reset = function() {
   }
 }
 
-//function to create staffCollection array from Meteor.users
-//returns an array of Staff
+// Function to create staffCollection array from Meteor.users
+// Returns an array of Staff
 function generateStaffCollection(obj){
 	var staffCollection = [];
 	for (var i = 0; i < obj.length; i++){
@@ -422,8 +430,8 @@ function generateStaffCollection(obj){
 	return staffCollection;
 }
 
-//creates an array of weightages of each day in the month
-//weightageSettings = {day (e.g. sunday = 0, monday = 1...) : weightage , 'ph' (public holiday) : weightage}
+// Creates an array of weightages of each day in the month
+// WeightageSettings = {day (e.g. sunday = 0, monday = 1...) : weightage , 'ph' (public holiday) : weightage}
 function getMonthWeightage(year, month, weightageSettings){
 	var daysOfMonth = daysInMonth(year,month);
 	var weightage = [];
@@ -439,8 +447,8 @@ function getMonthWeightage(year, month, weightageSettings){
 	return weightage;	
 }
 
-//returns an object with dates that has preference by staff and an array of staff themselves
-//e.g. {23 : [Object Staff1, Object Staff2], 24 : [Object Staff4]}
+// Returns an object with dates that has preference by staff and an array of staff themselves
+// e.g. {23 : [Object Staff1, Object Staff2], 24 : [Object Staff4]}
 function getPreferredDates(staffCollection){
 	var obj = {};
 	staffCollection.forEach(function (staff){

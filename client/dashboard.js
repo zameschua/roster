@@ -14,7 +14,11 @@ Template.dashboard.events({
 
 Template.dashboard.helpers({
   username: function() {
-    return Meteor.user().name;
+    try {
+      return Meteor.user().name;
+    } catch(err) {
+      return ;
+    }
   },
 	// Show additional buttons if user is admin
 	admin: function() {
