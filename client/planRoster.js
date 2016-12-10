@@ -73,9 +73,9 @@ Template.excelTable.events({
 		list = Meteor.users.find({}).fetch();
 		var staffCollection = generateStaffCollection(list);
 
-		//allocate duty dates to those with preferred dates
+		// Allocate duty dates to those with preferred dates
 		
-		var datesWithPreference = getPreference(staffCollection);
+		var datesWithPreference = getPreferredDates(staffCollection);
 		var occupiedWithPreferredDates = [];
 		Object.keys(datesWithPreference).forEach(function (key){
 			occupiedWithPreferredDates.push(parseInt(key));
@@ -84,15 +84,17 @@ Template.excelTable.events({
 
 		});
 
+		// For each day
 		for (var day = 1; day<=daysInNextMonth; day++){
 			staffCollection.forEach(function(staff) {
 				staff.reset();
 			});
-			for (var i = 0;i<numOfRoles;i++){
-				//array of staff who has preferred date on the day
+			// For each role
+			for (var i = 0; i < numOfRoles; i++){
+				// Generate an array of staff who has preferred date on the day
 				var preferredAvailableStaff = datesWithPreference[day.toString()];
-				var priorityStaff = [];		//array of staff to be chosen
-				var availableStaff = [];	//array of staff who is available (not including staff with block out days)
+				var priorityStaff = [];		// Array of staff to be chosen
+				var availableStaff = [];	// Array of staff who is available (not including staff with block out days)
 
 				staffCollection.forEach(function (staff){
 					if (staff.isAvailable(day)){
@@ -322,7 +324,7 @@ function generateData(daysInMonth) {
 	return result;
 };
 
-//init Staff class
+// Init Staff class
 var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, postOutDate, carriedOverPoints){
   this.name = name;
   this.team = team;
@@ -439,7 +441,7 @@ function getMonthWeightage(year, month, weightageSettings){
 
 //returns an object with dates that has preference by staff and an array of staff themselves
 //e.g. {23 : [Object Staff1, Object Staff2], 24 : [Object Staff4]}
-function getPreference(staffCollection){
+function getPreferredDates(staffCollection){
 	var obj = {};
 	staffCollection.forEach(function (staff){
 		var prefer = staff.preferredDates;
@@ -452,8 +454,3 @@ function getPreference(staffCollection){
 	});
 	return obj;
 }
-
-
-// TO DO: Ask about how they want to structure groups
-// Load and save feature
-// variable rules!
