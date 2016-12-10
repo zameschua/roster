@@ -36,12 +36,8 @@ Meteor.methods({
 		delete obj.email,
 		Meteor.users.update({_id: newUser}, {$set: obj});
 	},
-	insertData: function(year, month, obj) {
-		RosterDataCollection.insert( // year and month being treated as strings! Will fix tmr
-			{year: 
-				{month: obj}
-			}
-		);
+	insertData: function(obj) {
+		RosterDataCollection.insert(obj);
 	}
 });
 

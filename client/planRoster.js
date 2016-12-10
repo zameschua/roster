@@ -8,28 +8,24 @@ import { Template } from 'meteor/templating';
 import './planRoster.html';
 import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 
+// Init global vars
+var globalExcelData = [];
 var staffCollection = []; 
 var excelTable = false;
-var globalExcelData = [];
 
-// Temporary global variable to refer to HandsOnTable in template.events
 var today = new Date();
 var nextYear = today.getFullYear(); // Year of the next month
 var nextMonth = (today.getMonth() + 1) % 12; // NOTE: Jan is 0, Dec is 11. Follows Javascript's Date object implementation
-if (nextMonth == 0) { // If month is in december, nextYear will be the next year
+if (nextMonth == 0) { // If month is in December, nextYear will be the next year
 	nextYear += 1; 
 }
 var daysInNextMonth = daysInMonth(nextYear, nextMonth);
 var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
 
 
-Meteor.subscribe('allUsers');
+
 var numOfRoles = 1; // Number of roles needed per day. To be changed
 var publicHolidayDates = [];
-
-
-
-
 
 
 Template.planRoster.helpers({
@@ -51,127 +47,23 @@ Template.planRoster.events({
 	});
 	},
 	'click #load-btn': function() {
-		var data = RosterDataCollection.findOne().year.month;
-
-		console.log(JSON.stringify(data)); // Fix this tmr!!
-		hot.loadData(data.data);
+		try{
+			var data = RosterDataCollection.findOne()[nextYear][nextMonth];
+			excelTable.loadData(data);
+			alert("Load successful!")
+		} catch(err) {
+			alert("Load failed! " + e);
+		}
 	},
 	'click #save-btn': function() {
-		var data = {data: hot.getData()};
-		console.log(data);
-		Meteor.call('insertData', nextYear, nextMonth, data);
-		console.log("Data saved!");
+		var data = {};
+		data[nextYear] = {};
+		data[nextYear][nextMonth] = excelTable.getData();
+		Meteor.call('insertData', data);
+		alert("Data saved!");
 	},
 });
 
-Template.excelTable.events({
-	// ------------------------------------ Excuting the allocation of dates ---------------------------------------------------
-	'click #execute-btn': function(){
-		var monthWeightage = getMonthWeightage(nextYear,nextMonth,{
-			0 : 2,	// Sunday
-			1 : 1,	// Monday
-			2 : 1,	// Tuesday
-			3 : 1,	// Wednesday
-			4 : 1,	// Thursday
-			5 : 1.5,	// Friday
-			6 : 2,	// Saturday
-			ph : 2,	// Public holiday
-			});
-		
-
-
-		// Allocate duty dates to those with preferred dates
-		
-		var datesWithPreference = getPreferredDates(staffCollection);
-		var occupiedWithPreferredDates = [];
-		Object.keys(datesWithPreference).forEach(function (key){
-			occupiedWithPreferredDates.push(parseInt(key));
-			preferredStaff = datesWithPreference[key];
-
-
-		});
-
-		// For each day
-		for (var day = 1; day <= daysInNextMonth; day++){
-			staffCollection.forEach(function(staff) {
-				staff.reset();
-			});
-			// For each role
-			for (var i = 0; i < numOfRoles; i++){
-				// Generate an array of staff who has preferred date on the day
-				var preferredAvailableStaff = datesWithPreference[day.toString()];
-				var priorityStaff = [];		// Array of staff to be chosen
-				var availableStaff = [];	// Array of staff who is available (not including staff with block out days)
-
-				staffCollection.forEach(function (staff){
-					if (staff.isAvailable(day)){
-						availableStaff.push(staff);
-					}
-				});
-
-				var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
-				try{
-					var preferredStaffWithLeastPoints = getStaffWithLeastPoints(preferredAvailableStaff);
-				} catch(err){
-					var preferredStaffWithLeastPoints = new Staff(undefined, undefined, undefined, undefined, undefined, undefined, 0);
-				}
-				
-				if (occupiedWithPreferredDates.indexOf(day) != -1 && preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2){
-					// If this date has people who want to do duty
-					// And has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
-					// Prioritize them first
-					preferredAvailableStaff.forEach(function(staff){
-						if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints){
-							priorityStaff.push(staff);
-						}
-					});
-				}
-				else{
-					var blockOutFiltered = [];
-					availableStaff.forEach(function(staff){
-						if (staff.blockOutDates.indexOf(day) == -1){
-							blockOutFiltered.push(staff);
-						}
-					});
-					if (blockOutFiltered.length == 0){
-						var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
-						console.log(availableStaff);
-						availableStaff.forEach(function(staff){
-							if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
-								priorityStaff.push(staff);
-							}
-						});								
-					}
-					else{
-						var availableStaffWithLeastPoints = getStaffWithLeastPoints(blockOutFiltered);
-						blockOutFiltered.forEach(function(staff){
-							if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
-								priorityStaff.push(staff);
-							}
-						});								
-					}
-			
-				}
-
-				var chosenStaff = getRandomStaff(priorityStaff);
-				chosenStaff.pastDays = 1;
-				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
-				chosenStaff.allocatedDates.push(day);
-				staffCollection.forEach(function (staff){
-					if (staff.team == chosenStaff.team){
-						staff.teamOnCall = true;
-					}
-				});
-			};
-		}
-		staffCollection.forEach(function(staff){
-			console.log(staff.name,staff.currentPoints);
-			console.log(staff.allocatedDates);
-		});
-
-		updateExcelData();
-	},
-});
 
 // -------------------------------------- Generating the excel Table ---------------------------------------------------
 // Using handsontable for the excel-table
@@ -253,6 +145,122 @@ Template.excelTable.rendered = function() {
 	});
 }
 
+Template.excelTable.events({
+	// ------------------------------------ Excuting the allocation of dates ---------------------------------------------------
+	'click #execute-btn': function(){
+		var monthWeightage = getMonthWeightage(nextYear,nextMonth,{
+			0 : 2,	// Sunday
+			1 : 1,	// Monday
+			2 : 1,	// Tuesday
+			3 : 1,	// Wednesday
+			4 : 1,	// Thursday
+			5 : 1.5,	// Friday
+			6 : 2,	// Saturday
+			ph : 2,	// Public holiday
+			});
+		
+
+
+		// Allocate duty dates to those with preferred dates
+		
+		var datesWithPreference = getPreferredDates(staffCollection);
+		var occupiedWithPreferredDates = [];
+		Object.keys(datesWithPreference).forEach(function (key){
+			occupiedWithPreferredDates.push(parseInt(key));
+			preferredStaff = datesWithPreference[key];
+
+
+		});
+
+		// For each day
+		for (var day = 1; day <= daysInNextMonth; day++){
+			staffCollection.forEach(function(staff) {
+				staff.reset();
+			});
+			// For each role
+			for (var i = 0; i < numOfRoles; i++){
+				// Generate an array of staff who has preferred date on the day
+				var preferredAvailableStaff = datesWithPreference[day.toString()];
+				var priorityStaff = [];		// Array of staff to be chosen
+				var availableStaff = [];	// Array of staff who is available (not including staff with block out days)
+
+				staffCollection.forEach(function (staff){
+					if (staff.isAvailable(day)){
+						availableStaff.push(staff);
+					}
+				});
+
+				var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+				try{
+					var preferredStaffWithLeastPoints = getStaffWithLeastPoints(preferredAvailableStaff);
+				} catch(err){
+					var preferredStaffWithLeastPoints = new Staff(undefined, undefined, undefined, undefined, undefined, undefined, 0);
+				}
+				
+				try {
+					if (occupiedWithPreferredDates.indexOf(day) != -1 && preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2){
+						// If this date has people who want to do duty
+						// And has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
+						// Prioritize them first
+						preferredAvailableStaff.forEach(function(staff){
+							if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints){
+								priorityStaff.push(staff);
+							}
+						});
+					}
+					else{
+						var blockOutFiltered = [];
+						availableStaff.forEach(function(staff){
+							if (staff.blockOutDates.indexOf(day) == -1){
+								blockOutFiltered.push(staff);
+							}
+						});
+						if (blockOutFiltered.length == 0){
+							var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
+							console.log(availableStaff);
+							availableStaff.forEach(function(staff){
+								if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
+									priorityStaff.push(staff);
+								}
+							});								
+						}
+						else{
+							var availableStaffWithLeastPoints = getStaffWithLeastPoints(blockOutFiltered);
+							blockOutFiltered.forEach(function(staff){
+								if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
+									priorityStaff.push(staff);
+								}
+							});								
+						}
+				
+					}
+				} catch(e) {
+					alert("There is no suitable staff on " + day + " day");
+				}
+				try {
+				var chosenStaff = getRandomStaff(priorityStaff);
+				chosenStaff.pastDays = 1;
+				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
+				chosenStaff.allocatedDates.push(day);
+				staffCollection.forEach(function (staff){
+					if (staff.team == chosenStaff.team){
+						staff.teamOnCall = true;
+					}
+				});
+				} catch (e) {
+					alert("There is no suitable staff on " + day + " day");
+				}
+			};
+		}
+		staffCollection.forEach(function(staff){
+			console.log(staff.name,staff.currentPoints);
+			console.log(staff.allocatedDates);
+		});
+
+		updateExcelData();
+	},
+});
+
 
 // ------------------ HELPER FUNCTIONS --------------------
 // Returns the number of days in that particular month
@@ -283,6 +291,7 @@ function generateColHeaders(daysInMonth) {
 	return headers;
 }
 
+// Generates empty data for excel table on init
 function generateEmptyData() {
 	var excelData = [];
 	staffCollection.forEach(function(staff) {
@@ -295,43 +304,14 @@ function generateEmptyData() {
 	return excelData;
 }
 
-// Generate data to be displayed in excel table
-// Data is in the form [[name, "", "x", ""..], [name2, "", "x", ""..]]
+// Change the data in globalExcelData, to be reflected in HandsOnTable
 function updateExcelData() {
-	for (var i = 0; i < staffCollection.length; i++) {
-		staffCollection[i].allocatedDates.forEach(function(j) {
-			globalExcelData[i][j] = "x";
+	for (var row = 0; row < staffCollection.length; row++) {
+		staffCollection[row].allocatedDates.forEach(function(col) {
+			globalExcelData[row][col] = "x";
 		});
 	}
 }
-
-/* Structure of the data
-[
-{name: "Zames", "1": "", "2": "", .... blockOutDates: [], preferredDates: []}
-{name: "Chen Kuang", "1": "", "2": "", .... blockOutDates: [], preferredDates: []}
-]
-
-function generateData(daysInMonth) {
-	var result = [];
-
-	// Init empty row for each user
-	var allUsers = Meteor.users.find();
-	allUsers.forEach(function(user) {
-		var tableRow = {
-			name: user.name,
-		};
-		for (var i = 1; i <= daysInMonth; i++){    // Looping through days in month
-			tableRow[i] = "";
-		}
-		tableRow.blockOutDates = user.blockOutDates;
-		tableRow.preferredDates = user.preferredDates;
-		tableRow.leaveDates = user.leaveDates;
-		result.push(tableRow);
-	});
-	//console.log(JSON.stringify(result));
-	return result;
-};
-*/
 
 // Init Staff class
 var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, postOutDate, carriedOverPoints){
@@ -371,9 +351,7 @@ Staff.prototype.isAvailable = function(day) {
 	else{
 		return true;
 	}
-}
-
-//allocate  
+} 
 
 // Takes in array of Staff, returns the staff with least points.
 // If 2 people have the same points, return the first staff
