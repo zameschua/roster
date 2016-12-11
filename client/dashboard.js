@@ -39,6 +39,10 @@ Template.firstLogin.rendered = function(){
     $('#staffDateDiv').on("changeDate",function(){$("#staffDate").val($("#staffDateDiv").datepicker("getFormattedDate"))});
 };
 
+Template.firstLogin.helpers({
+  teamList : teamHelper(10),
+});
+
 Template.firstLogin.events({
   'click #modal-save': function(event){
     event.preventDefault();
@@ -51,14 +55,27 @@ Template.firstLogin.events({
 
     // Call function in /server/main.js to update record in MongoDB
     Meteor.call('updateUser', Meteor.userId(), obj);
-
-    // Hide the modal
-    $('#editModal').modal('hide');
     // Reset the values in the modal input textfields
+
     $("#editModal").on("hidden.bs.modal", function(){
       $(this).find("input, textarea, select").val('').end();
     });
+    // Hide the modal
+    $('#editModal').modal('hide');
+    
+    
     // Send user a notification
     alert("Your profile has been updated!");
   }
 });
+
+//Use this method to create number of teams to be shown in the drop down box
+function teamHelper(numOfTeams){
+  var out = [];
+  for (var i = 1; i <= numOfTeams; i++){
+    var teamVal = 'option ' + i;
+    out.push(teamVal);
+  };
+
+  return out;
+};

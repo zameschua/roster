@@ -33,14 +33,18 @@ Template.manageUsers.helpers({
       ]
     };
   },
+  
 
 });
 
 Template.addStaffButton.helpers({
   dateHelper : function(){
     return moment().add(1,'M').format("MMMM YYYY");
-  }
+  },
+});
 
+Template.editUsersCollection.helpers({
+  teamList : teamHelper(10),
 });
 
 Template.manageUsers.events({
@@ -64,15 +68,21 @@ Template.manageUsers.events({
       $('#staffDateDiv').datepicker({format: "yyyy/mm/dd",});
       $('#staffDateDiv').on("changeDate",function(){$("#staffDate").val($("#staffDateDiv").datepicker("getFormattedDate"))});
       temp = post;
-      // Show the modal (popup)
-      $('#editModal').modal('show');
+
+      //INIT modal listeners for hidden and shown
       $('#editModal').on("shown.bs.modal",function(){
-        console.log(temp.roles);
         $("#staffName").val(temp.name);
         $('#staffTeam').val(temp.team);
         $('#staffDate').val(temp.postOutDate);
         $('#staffRole').val(temp.roles);
       });
+      // Reset the values in the modal input textfields
+      $("#editModal").on("hidden.bs.modal", function(){
+        $(this).find("input, textarea, select").val('').end();
+      });
+
+      // Show the modal (popup)
+      $('#editModal').modal('show');
       
     }
   },
@@ -86,7 +96,7 @@ Template.manageUsers.events({
     		return;
     	}
     }
-
+    console.log($('#staffTeam').val());
     var obj = {
       name: $('#staffName').val(),
       team: $('#staffTeam').val(),
@@ -97,12 +107,10 @@ Template.manageUsers.events({
     // Call function in /server/main.js to update record in MongoDB
     Meteor.call('updateUser', temp._id, obj);
 
+
     // Hide the modal
     $('#editModal').modal('hide');
-    // Reset the values in the modal input textfields
-    $("#editModal").on("hidden.bs.modal", function(){
-      $(this).find("input, textarea, select").val('').end();
-    });
+
     // Send user a notification
     alert("Record has been updated.");
   },
@@ -130,14 +138,27 @@ Template.manageUsers.events({
 
     // Call function in /server/main.js to update record in MongoDB
     Meteor.call('insertUser', obj);
-
-    // Hide the modal
-    $('#addModal').modal('hide');
+   
     // Reset the values in the modal input textfields
     $("#addModal").on("hidden.bs.modal", function(){
       $(this).find("input, textarea, select").val('').end();
     });
+
+    // Hide the modal
+    $('#addModal').modal('hide');
+
     // Send user a notification
     alert("Record has been added.");
   },
 });
+
+//Use this method to create number of teams to be shown in the drop down box
+function teamHelper(numOfTeams){
+  var out = [];
+  for (var i = 1; i <= numOfTeams; i++){
+    var teamVal = 'option ' + i;
+    out.push(teamVal);
+  };
+
+  return out;
+};
