@@ -59,7 +59,7 @@ Template.planRoster.events({
 		var data = {};
 		data[nextYear] = {};
 		data[nextYear][nextMonth] = excelTable.getData();
-		Meteor.call('insertData', data);
+		Meteor.call('insertData', data, nextYear, nextMonth);
 		alert("Data saved!");
 	},
 });

@@ -36,8 +36,17 @@ Meteor.methods({
 		delete obj.email,
 		Meteor.users.update({_id: newUser}, {$set: obj});
 	},
-	insertData: function(obj) {
-		RosterDataCollection.insert(obj);
+	insertData: function(obj, year, month) {
+		var oldObj = RosterDataCollection.findOne();
+		try {
+			oldObj[year][month] = obj[year][month]; // If that particular entry already exists
+		} catch(err) {
+			oldObj[year] = obj[year];
+		}
+		RosterDataCollection.update({}, {$set: oldObj});
+	},
+	getData: function() {
+		return RosterDataCollection.find();
 	}
 });
 

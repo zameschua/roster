@@ -97,6 +97,11 @@
   <div class="content-wrapper">
     <!-- Main content -->
     <section class="content">
+      <div class="row">
+        <div class="col-sm-12">
+        {{> dashboardCalendar}}
+        </div>
+      </div>
     </section>
     <!-- /.content -->
   </div>
@@ -157,4 +162,9 @@
       </div>
     </div>
   </div>
+</template>
+
+
+<template name="dashboardCalendar">
+  {{> fullcalendar id="calendar" events=events}}
 </template>

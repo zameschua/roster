@@ -1,5 +1,5 @@
 import { Template } from 'meteor/templating';
- 
+import { RosterDataCollection } from '/imports/api/RosterDataCollection';
 import './dashboard.html';
 
 Template.dashboard.events({
@@ -23,7 +23,7 @@ Template.dashboard.helpers({
 	// Show additional buttons if user is admin
 	admin: function() {
 		return Roles.userIsInRole(Meteor.userId(), 'admin');
-	}
+	},
 });
 
 Template.dashboard.rendered = function() {
@@ -34,6 +34,10 @@ Template.dashboard.rendered = function() {
 	}, 1000);
 };
 
+
+
+
+// --------------------- Modal on first login -----------------------------
 Template.firstLogin.rendered = function(){
     $('#staffDateDiv').datepicker({format: "yyyy/mm/dd",});
     $('#staffDateDiv').on("changeDate",function(){$("#staffDate").val($("#staffDateDiv").datepicker("getFormattedDate"))});
@@ -68,6 +72,34 @@ Template.firstLogin.events({
     alert("Your profile has been updated!");
   }
 });
+
+// -----------------------------Methods for calendar ----------------------------------
+var calendarData = [ // Array of event objects
+    {
+        title: 'My Event',
+        start: '2016-12-01',
+        description: 'This is a cool event'
+    }
+    // more events here
+  ] ;
+
+Template.dashboardCalendar.helpers({
+  events: calendarData,
+});
+
+Template.dashboardCalendar.rendered = function() {
+  console.log(RosterDataCollection.findOne());
+}
+
+
+
+
+
+
+
+
+
+
 
 //Use this method to create number of teams to be shown in the drop down box
 function teamHelper(numOfTeams){
