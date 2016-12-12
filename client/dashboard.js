@@ -74,27 +74,48 @@ Template.firstLogin.events({
 });
 
 // -----------------------------Methods for calendar ----------------------------------
-var calendarData = [ // Array of event objects
-    {
-        title: 'My Event',
-        start: '2016-12-01',
-        description: 'This is a cool event'
-    }
-    // more events here
-  ] ;
 
-Template.dashboardCalendar.helpers({
-  events: calendarData,
-});
 
 Template.dashboardCalendar.rendered = function() {
-  console.log(RosterDataCollection.findOne());
+  $('#calendar').fullCalendar();
+  var today = new Date();
+  var month = today.getMonth();
+  var year = today.getFullYear();
+
+  Meteor.subscribe('RosterDataCollection', function(){
+    Session.set('dataLoaded', true);
+  });
+  Tracker.autorun(function () { // Triggered when database is loaded
+    var sessionVal = Session.get("dataLoaded")
+    var calendarData = RosterDataCollection.findOne();
+    for (var year in calendarData) {
+      if (year === "_id") {
+        ; // Ignore if we're iterating over object _id
+      } else {
+        for (var month in calendarData[year]) {
+          var monthData = calendarData[year][month];
+
+          // For each user
+          monthData.forEach(function(user) {
+            var name = user[0];
+            user.shift();
+
+            // For each day
+            // Array of empty strings and "x", ie. ["", "", "x", ""]
+            for (var i = 0; i < user.length; i++) {
+              if (user[i] === "x") {
+                $('#calendar').fullCalendar( 'renderEvent', {
+                    title: name,
+                    start: year + "-" + (month + 1) + "-" + (i + 1),
+                }, true);
+              }
+            };
+          });
+        };
+      }
+    };
+  });
 }
-
-
-
-
-
 
 
 
