@@ -239,7 +239,7 @@ Template.excelTable.events({
 				}
 				try {
 				var chosenStaff = getRandomStaff(priorityStaff);
-				chosenStaff.pastDays = 1;
+				chosenStaff.pastDays = 4;
 				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
 				chosenStaff.allocatedDates.push(day);
 				staffCollection.forEach(function (staff){
