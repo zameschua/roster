@@ -198,12 +198,14 @@ Template.excelTable.events({
 				}
 				
 				try {
-					if (occupiedWithPreferredDates.indexOf(day) != -1 && preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2){
+					if (occupiedWithPreferredDates.indexOf(day) != -1 
+						&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2
+						&& isInside(preferredAvailableStaff,availableStaff)){
 						// If this date has people who want to do duty
 						// And has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
 						// Prioritize them first
 						preferredAvailableStaff.forEach(function(staff){
-							if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints){
+							if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints && staff.isAvailable(day)){
 								priorityStaff.push(staff);
 							}
 						});
@@ -440,4 +442,14 @@ function getPreferredDates(staffCollection){
 		});
 	});
 	return obj;
+}
+
+// Returns whether at least one of the items in one staffCollection is in another staffCollection
+function isInside(toBeChecked, checkedAgainst){
+	toBeChecked.forEach(function (staff){
+		if (checkedAgainst.indexOf(staff) != -1){
+			return true;
+		}
+	});
+	return false;
 }
