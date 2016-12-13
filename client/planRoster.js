@@ -148,6 +148,8 @@ Template.excelTable.rendered = function() {
 Template.excelTable.events({
 	// ------------------------------------ Excuting the allocation of dates ---------------------------------------------------
 	'click #execute-btn': function(){
+		clearExcelData();
+		
 		var monthWeightage = getMonthWeightage(nextYear,nextMonth,{
 			0 : 2,	// Sunday
 			1 : 1,	// Monday
@@ -308,10 +310,20 @@ function generateEmptyData() {
 
 // Change the data in globalExcelData, to be reflected in HandsOnTable
 function updateExcelData() {
-	for (var row = 0; row < staffCollection.length; row++) {
+	for (var row = 0; row < staffCollection.length; row++) { // Re populate with new data
 		staffCollection[row].allocatedDates.forEach(function(col) {
 			globalExcelData[row][col] = "x";
 		});
+	}
+}
+
+// Clear the data in globalExcelData
+function clearExcelData() {
+	for (var row = 0; row < staffCollection.length; row++) { 
+	staffCollection[row].allocatedDates = []; // Reset staffCollection.allocatedDates
+		for (var col = 1; col < daysInNextMonth; col++) {
+			globalExcelData[row][col] = ""; // Reset table
+		}
 	}
 }
 
@@ -453,3 +465,4 @@ function isInside(toBeChecked, checkedAgainst){
 	});
 	return false;
 }
+
