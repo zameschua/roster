@@ -182,7 +182,7 @@ Template.excelTable.events({
 			// For each role
 			for (var i = 0; i < numOfRoles; i++){
 				// Generate an array of staff who has preferred date on the day
-				var preferredAvailableStaff = datesWithPreference[day.toString()];
+				var preferredAvailableStaff = (datesWithPreference[day.toString()]) ? datesWithPreference[day.toString()] : [];
 				var priorityStaff = [];		// Array of staff to be chosen
 				var availableStaff = [];	// Array of staff who is available (not including staff with block out days)
 
@@ -208,6 +208,7 @@ Template.excelTable.events({
 						// Prioritize them first
 						preferredAvailableStaff.forEach(function(staff){
 							if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints && staff.isAvailable(day)){
+								console.log("+++++",staff.name,"is in preferred+++++");
 								priorityStaff.push(staff);
 							}
 						});
@@ -458,11 +459,18 @@ function getPreferredDates(staffCollection){
 
 // Returns whether at least one of the items in one staffCollection is in another staffCollection
 function isInside(toBeChecked, checkedAgainst){
-	toBeChecked.forEach(function (staff){
-		if (checkedAgainst.indexOf(staff) != -1){
-			return true;
+	if (toBeChecked.length == 0){
+		return false;
+	}
+	else{
+		for (var i=0;i<toBeChecked.length;i++){
+			ele = toBeChecked[i];
+			if (checkedAgainst.indexOf(ele) != -1){
+				return true;
+			}
 		}
-	});
-	return false;
+		return false;
+	}
+	
 }
 
