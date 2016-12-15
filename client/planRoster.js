@@ -208,7 +208,6 @@ Template.excelTable.events({
 						// Prioritize them first
 						preferredAvailableStaff.forEach(function(staff){
 							if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints && staff.isAvailable(day)){
-								console.log("+++++",staff.name,"is in preferred+++++");
 								priorityStaff.push(staff);
 							}
 						});
@@ -321,8 +320,8 @@ function updateExcelData() {
 // Clear the data in globalExcelData
 function clearExcelData() {
 	for (var row = 0; row < staffCollection.length; row++) { 
-	staffCollection[row].allocatedDates = []; // Reset staffCollection.allocatedDates
-		for (var col = 1; col < daysInNextMonth; col++) {
+		staffCollection = generateStaffCollection(Meteor.users.find({}).fetch()); //reset staffCollection to its original points and allocatedDates
+		for (var col = 1; col <= daysInNextMonth; col++) {
 			globalExcelData[row][col] = ""; // Reset table
 		}
 	}
@@ -348,11 +347,11 @@ var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, post
 Staff.prototype.isAvailable = function(day) {
 	var nextDate = new Date(nextYear,nextMonth,day+1);
 	//if staff choose to block out current day
-	if (this.leaveDates.indexOf(day) > -1){
+	if (this.leaveDates.indexOf(day) != -1){
 		return false;
 	}
 	//if staff's blockOutDate is next day
-	else if (this.leaveDates.indexOf(day+1) > -1){
+	else if (this.leaveDates.indexOf(day+1) != -1){
 		return false;
 	}
 	//if staff's postOutDate is next day
