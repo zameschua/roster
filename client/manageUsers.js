@@ -116,7 +116,7 @@ Template.manageUsers.events({
   },
   'click .addStaffButton': function(event){
     $('#newStaffDateDiv').datepicker({format: "yyyy/mm/dd",});
-    $('#newStaffDateDiv').on("changeDate",function(){$("#newStaffDate").val($("#newStaffDateDiv").datepicker("getFormattedDate"))});
+    $('#newStaffDateDiv').on("changeDate",function(){$( "#newStaffDate").val($("#newStaffDateDiv").datepicker("getFormattedDate"))});
     $('#addModal').modal('show');
   },
   'click #add-modal-save': function(event){

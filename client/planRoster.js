@@ -24,9 +24,6 @@ var weekends = getWeekends(nextYear, nextMonth, daysInNextMonth);
 
 
 
-var numOfRoles = 1; // Number of roles needed per day. To be changed
-var publicHolidayDates = [];
-
 
 Template.planRoster.helpers({
 	username: function() {
@@ -145,11 +142,14 @@ Template.excelTable.rendered = function() {
 	});
 }
 
+
+var roles = [['role1',1],['role2',2]]; // Role names and weights per day
+var publicHolidayDates = [];
 Template.excelTable.events({
 	// ------------------------------------ Excuting the allocation of dates ---------------------------------------------------
 	'click #execute-btn': function(){
 		clearExcelData();
-		
+		var average = 0; //test variable
 		var monthWeightage = getMonthWeightage(nextYear,nextMonth,{
 			0 : 2,	// Sunday
 			1 : 1,	// Monday
@@ -162,106 +162,167 @@ Template.excelTable.events({
 			});
 		
 
-
-		// Allocate duty dates to those with preferred dates
-		
+		// Allocate calls to those with preferred call dates
 		var datesWithPreference = getPreferredDates(staffCollection);
-		var occupiedWithPreferredDates = [];
-		Object.keys(datesWithPreference).forEach(function (key){
-			occupiedWithPreferredDates.push(parseInt(key));
-			preferredStaff = datesWithPreference[key];
+		var monthAllocation = createMonthAllocation(daysInNextMonth,roles);
+		var averageWeight = getAverageWeight(daysInNextMonth,monthWeightage,roles,staffCollection.length);
 
-
-		});
-
-		// For each day
-		for (var day = 1; day <= daysInNextMonth; day++){
+		
+		Object.keys(datesWithPreference).forEach(function (day){
+			var day = parseInt(day);
 			staffCollection.forEach(function(staff) {
 				staff.reset();
 			});
-			// For each role
-			for (var i = 0; i < numOfRoles; i++){
-				// Generate an array of staff who has preferred date on the day
-				var preferredAvailableStaff = (datesWithPreference[day.toString()]) ? datesWithPreference[day.toString()] : [];
-				var priorityStaff = [];		// Array of staff to be chosen
-				var availableStaff = [];	// Array of staff who is available (not including staff with block out days)
-
-				staffCollection.forEach(function (staff){
-					if (staff.isAvailable(day)){
-						availableStaff.push(staff);
-					}
-				});
-
-				var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
-				try{
-					var preferredStaffWithLeastPoints = getStaffWithLeastPoints(preferredAvailableStaff);
-				} catch(err){
-					var preferredStaffWithLeastPoints = new Staff(undefined, undefined, undefined, undefined, undefined, undefined, 0);
+			var lowestPointStaff = [];
+			var finalList = [];
+			datesWithPreference[day].forEach(function (staff){
+				// get collection of staff with lowest points
+				if (staff.currentPoints == getStaffWithLeastPoints(datesWithPreference[day]).currentPoints){
+					lowestPointStaff.push(staff);
 				}
-				
-				try {
-					if (occupiedWithPreferredDates.indexOf(day) != -1 
-						&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints < 2
-						&& isInside(preferredAvailableStaff,availableStaff)){
-						// If this date has people who want to do duty
-						// And has points lower than the lowest of (&& preferredStaffWithLeastPoints.currentPoints - availableStaffWithLeastPoints.currentPoints > 1) 
-						// Prioritize them first
-						preferredAvailableStaff.forEach(function(staff){
-							if (staff.currentPoints == preferredStaffWithLeastPoints.currentPoints && staff.isAvailable(day)){
-								priorityStaff.push(staff);
-							}
-						});
+			});
+			lowestPointStaff.forEach(function (staff){
+				if ((staff.lastCallDate+3) < day && !staff.teamOnCall){
+					// if "Staff has not done a call for the past 3 days" and "No other team members are on call that day"
+					finalList.push(staff);
+				}
+			});
+
+			
+			for (var i=0; i<roles.length; i++){
+				if (finalList.length == 0){break;}
+				// get weight of role on current day
+				var roleWeight = roles[i][1] * monthWeightage[day-1];
+				var chosen = false;
+				while (!chosen){
+					var chosenStaff = getRandomStaff(finalList);
+					if (finalList.length == 1 && chosenStaff.currentPoints + roleWeight > averageWeight + 1){
+						chosen=true;
 					}
 					else{
-						var blockOutFiltered = [];
-						availableStaff.forEach(function(staff){
-							if (staff.blockOutDates.indexOf(day) == -1){
-								blockOutFiltered.push(staff);
-							}
-						});
-						if (blockOutFiltered.length == 0){
-							var availableStaffWithLeastPoints = getStaffWithLeastPoints(availableStaff);
-							console.log(availableStaff);
-							availableStaff.forEach(function(staff){
-								if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
-									priorityStaff.push(staff);
+						if (chosenStaff.currentPoints + roleWeight <= averageWeight + 1){
+							chosen = true;
+							// if Staff's points + callWeight <= averageWeight + 1
+							// allocate staff to random role
+							chosenStaff.lastCallDate = day;
+							// update teamOnCall status of all team members
+							staffCollection.forEach(function (staff){
+								if (staff.team == chosenStaff.team){
+									staff.teamOnCall = true;
 								}
-							});								
+							});
+							chosenStaff.allocatedDates.push(day);
+
+							// update records in monthAllocation
+							monthAllocation[day][roles[i][0]] = chosenStaff;
+							// update current weights of staff
+							chosenStaff.currentPoints += roleWeight;
+							finalList.splice(finalList.indexOf(chosenStaff),1);
+						}						
+					}
+				}
+			}				
+			
+		});
+		// reset lastCallDate
+		staffCollection.forEach(function(staff) {
+			staff.lastCallDate = -3;
+		});
+		
+		// For each day
+		for (var day=1;day<=daysInNextMonth;day++){
+			// reset staff status
+			staffCollection.forEach(function(staff) {
+				staff.reset();
+			});
+			// For each role of each day
+			for (var i=0;i<roles.length;i++){
+				// if current role in current day is not empty
+				if (monthAllocation[day][roles[i][0]] != ""){
+					// update teamOnCall status of all other team members
+					var chosenStaff = monthAllocation[day][roles[i][0]]; 
+					chosenStaff.lastCallDate = day;
+					staffCollection.forEach(function (staff){
+						if (staff.team == chosenStaff.team){
+							staff.teamOnCall = true;
+						}
+					});
+				}
+
+				else{
+					// get weight of role on current day
+					var roleWeight = roles[i][1] * monthWeightage[day-1];
+
+
+					// filter out staff who are unable to do calls: leave,post-out,did call for the past 3 days
+					var availableStaff = [];
+					staffCollection.forEach(function (staff){
+						if (staff.isAvailable(day)){
+							availableStaff.push(staff);
+						}
+					});
+
+					// Get staffWithLowestPoints from availableStaff
+					var staffWithLowestPoints = []
+					var modelStaff = getStaffWithLeastPoints(availableStaff);
+					availableStaff.forEach(function (staff){
+						if (staff.currentPoints == modelStaff.currentPoints){
+							staffWithLowestPoints.push(staff);
+						}
+					});
+
+					// Get staffFromDiffTeam from staffWithLowestPoints
+					var staffFromDiffTeam = [];
+					staffWithLowestPoints.forEach(function (staff){
+						if (staff.teamOnCall == false){
+							staffFromDiffTeam.push(staff);
+						}
+					});
+					
+					// Get filteredStaffList by filtering those that blocked out the day
+					var filteredStaffList = [];
+					staffFromDiffTeam.forEach(function (staff){
+						if (staff.blockOutDates.indexOf(day) == -1){
+							filteredStaffList.push(staff);
+						}
+					});
+
+					if (filteredStaffList.length == 0){
+						if (staffFromDiffTeam.length == 0){
+							// randomly choose staff from staffWithLowestPoints
+							var chosenStaff = getRandomStaff(staffWithLowestPoints);
 						}
 						else{
-							var availableStaffWithLeastPoints = getStaffWithLeastPoints(blockOutFiltered);
-							blockOutFiltered.forEach(function(staff){
-								if (staff.currentPoints == availableStaffWithLeastPoints.currentPoints){
-									priorityStaff.push(staff);
-								}
-							});								
+							// randomly choose staff from staffFromDiffTeam
+							var chosenStaff = getRandomStaff(staffFromDiffTeam);
 						}
-				
 					}
-				} catch(e) {
-					alert("There is no suitable staff on " + day + " day");
-				}
-				try {
-				var chosenStaff = getRandomStaff(priorityStaff);
-				chosenStaff.pastDays = 4;
-				chosenStaff.currentPoints += monthWeightage[day-1]; //to be updated
-				chosenStaff.allocatedDates.push(day);
-				staffCollection.forEach(function (staff){
-					if (staff.team == chosenStaff.team){
-						staff.teamOnCall = true;
+					else{
+						// randomly choose staff from filteredStaffList
+						var chosenStaff = getRandomStaff(filteredStaffList);
 					}
-				});
-				} catch (e) {
-					alert("There is no suitable staff on " + day + " day");
+					chosenStaff.allocatedDates.push(day);
+					// update records in monthAllocation
+					monthAllocation[day][roles[i][0]] = chosenStaff;
+					// update current weights of chosen staff
+					chosenStaff.currentPoints += roleWeight;
+					// update last called date of chosen staff
+					chosenStaff.lastCallDate = parseInt(day);
+					// update teamOnCall status of all team members
+					staffCollection.forEach(function (staff){
+						if (staff.team == chosenStaff.team){
+							staff.teamOnCall = true;
+						}
+					});
 				}
-			};
+			}
 		}
+		updateExcelData();
+		console.log(averageWeight);
 		staffCollection.forEach(function(staff){
 			console.log(staff.name,staff.currentPoints);
-			console.log(staff.allocatedDates);
+			console.log(staff.allocatedDates.length);
 		});
-
-		updateExcelData();
 	},
 });
 
@@ -269,7 +330,7 @@ Template.excelTable.events({
 // ------------------ HELPER FUNCTIONS --------------------
 // Returns the number of days in that particular month
 function daysInMonth(year, month) {
-    return new Date(year, month, 0).getDate();
+    return new Date(year, month+1, 0).getDate();
 }
 
 // Returns an array of all the Saturdays and Sundays in the particular month
@@ -337,29 +398,30 @@ var Staff = function(name, team, preferredDates, blockOutDates, leaveDates, post
   this.leaveDates = leaveDates
   this.currentPoints = carriedOverPoints;
   this.allocatedDates = [];
-  this.pastDays = 0; //integer to indicate number of days past since first duty
+  this.lastCallDate = -3; //integer to indicate date of last duty
   this.teamOnCall = false;
-  this.consecTeamOnCall = false;
   
 } 
 
 // Checks if staff is available to work on that day
 Staff.prototype.isAvailable = function(day) {
 	var nextDate = new Date(nextYear,nextMonth,day+1);
-	//if staff choose to block out current day
-	if (this.leaveDates.indexOf(day) != -1){
+
+	for (buffer=1;buffer<=3;buffer++){
+		if (this.preferredDates.indexOf(day+buffer) != -1)
+			return false;
+	}
+
+	// if staff has leave on the day, block out the day itself and also the day before
+	if (this.leaveDates.indexOf(day) != -1 || this.leaveDates.indexOf(day+1) != -1){
 		return false;
 	}
-	//if staff's blockOutDate is next day
-	else if (this.leaveDates.indexOf(day+1) != -1){
-		return false;
-	}
-	//if staff's postOutDate is next day
+	// if staff's postOutDate is next day
 	else if (nextDate >= this.postOutDate){
 		return false;
 	}
-	//arbitruary conditions
-	else if (this.teamOnCall || this.consecTeamOnCall || this.pastDays != 0){
+	// if staff has done a call for the past 3 days
+	else if ((this.lastCallDate+3) > day){
 		return false;
 	}
 	else{
@@ -367,14 +429,16 @@ Staff.prototype.isAvailable = function(day) {
 	}
 } 
 
+
+
 // Takes in array of Staff, returns the staff with least points.
 // If 2 people have the same points, return the first staff
 function getStaffWithLeastPoints(arr) {
 	var currentLowestStaff = arr[0];
 	arr.forEach(function(staff) {
-	if (staff.currentPoints <= currentLowestStaff.currentPoints) {
-	  currentLowestStaff = staff;
-	}
+		if (staff.currentPoints <= currentLowestStaff.currentPoints) {
+		  currentLowestStaff = staff;
+		}
 	});
 	return currentLowestStaff;
 }
@@ -388,17 +452,8 @@ function getRandomStaff(arr) {
 // Run at the start of each day
 // Reset the staff's state for the next day
 Staff.prototype.reset = function() {
-  // Reduce the number of days since the staff was on call
-  if (this.pastDays > 0) {
-    this.pastDays -= 1; 
-  }
-  // Reset consecTeamOnCall
-  if (this.consecTeamOnCall === true) {
-    this.consecTeamOnCall = false;  
-  }
   // Someone on the team was on call the previous day
-  if (this.teamOnCall === true) {
-    this.consecTeamOnCall = true;
+  if (this.teamOnCall == true) {
     this.teamOnCall = false;
   }
 }
@@ -446,12 +501,14 @@ function getPreferredDates(staffCollection){
 	var obj = {};
 	staffCollection.forEach(function (staff){
 		var prefer = staff.preferredDates;
-		prefer.forEach(function (date){
-			if (obj[date] == undefined){	//if no one prefers to do this date
-				obj[date] = [];
-			}
-			obj[date].push(staff);
-		});
+		try{
+			prefer.forEach(function (date){
+				if (obj[date] == undefined){	//if no one prefers to do this date
+					obj[date] = [];
+				}
+				obj[date].push(staff);
+			});			
+		}catch (e) {}
 	});
 	return obj;
 }
@@ -473,3 +530,35 @@ function isInside(toBeChecked, checkedAgainst){
 	
 }
 
+// Returns a master copy of the monthAllocation -> {day: {role1: 'alex', role2: 'zames'...}...}
+// method takes in 2 parameters:
+	// 1. maxDays - Total number of days in the month
+	// 2. roles - an array of the roles -> [[nameOfRole,callWeight]...]
+function createMonthAllocation(maxDays, roles){
+	var out = {};
+	for (var date=1;date<=maxDays;date++){
+		var unOccupiedRoles = {};
+		for(var i=0;i<roles.length;i++){
+			roleName = roles[i][0];
+			unOccupiedRoles[roleName] = "";
+		}
+		out[date] = unOccupiedRoles;
+	}
+	return out;
+}
+
+// Returns the average weight of that particular month
+// method takes in 2 parameters:
+	// 1. maxDays - Total number of days in the month
+	// 2. monthWeightage - Weightage of each day in the month
+	// 3. roles - an array of roles to get the weightage of each role
+
+function getAverageWeight(maxDays,monthWeightage,roles,totalNumberOfStaff){
+	var totalSum = 0;
+	for (var date=0;date<maxDays;date++){
+		roles.forEach(function (role){
+			totalSum += role[1] * monthWeightage[date]; // multiply weight of day by weight of role
+		});
+	}
+	return Math.ceil(totalSum/totalNumberOfStaff);
+}
